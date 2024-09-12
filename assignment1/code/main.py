@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import os
 from pathlib import Path
 import time
@@ -58,7 +57,68 @@ def q5_1():
     names = df.columns.values
 
     # YOUR CODE HERE
-    print("TODO: Not implemented yet")
+    # solution for question 1
+    import statistics
+    import utils
+
+    def columnIntoNPArray(data, columnIndex):
+        arr = []
+        for row in data:
+            arr.append(row[columnIndex])
+        return np.array(arr)
+    
+    ans = pd.DataFrame(columns = ["region","minimum", "maximum", "mean", "median", "mode"])
+    
+    for i in range(len(names)):
+        row = []
+        row.append(names[i])
+        row.append(min(columnIntoNPArray(X,i)))
+        row.append(max(columnIntoNPArray(X,i)))
+        row.append(statistics.mean(columnIntoNPArray(X,i)))
+        row.append(statistics.median(columnIntoNPArray(X,i)))
+        row.append(utils.mode(columnIntoNPArray(X,i)))
+        ans.loc[i] = row
+    print("\nQUESTION 5.1.1 SOLUTION:\n")
+    print(ans)
+
+    # solution for question 2
+    ans = pd.DataFrame(columns = ["region","5% quantile", "25% quantile", "50% quantile", "75% quantile", "95% quantile"])
+    
+    for i in range(len(names)):
+        row = []
+        row.append(names[i])
+        row.append(np.quantile(columnIntoNPArray(X,i), 0.05))
+        row.append(np.quantile(columnIntoNPArray(X,i), 0.25))
+        row.append(np.quantile(columnIntoNPArray(X,i), 0.50))
+        row.append(np.quantile(columnIntoNPArray(X,i), 0.75))
+        row.append(np.quantile(columnIntoNPArray(X,i), 0.95))
+        ans.loc[i] = row
+
+    print("\nQUESTION 5.1.2 SOLUTION:\n")
+    print(ans)
+
+    # solution for question 3
+    ans = pd.DataFrame(columns = ["region","mean", "variance"])
+    
+    for i in range(len(names)):
+        row = []
+        row.append(names[i])
+        row.append(statistics.mean(columnIntoNPArray(X,i)))
+        row.append(statistics.variance(columnIntoNPArray(X,i)))
+        ans.loc[i] = row
+    ansValues = ans.values
+
+    print("\nQUESTION 5.1.3 SOLUTION:\n")
+    print(ans)
+    maxMeanindex = np.argmax(columnIntoNPArray(ansValues, 1))
+    minMeanindex = np.argmin(columnIntoNPArray(ansValues, 1))
+    maxVarianceindex = np.argmax(columnIntoNPArray(ansValues, 2))
+    minVarianceindex = np.argmin(columnIntoNPArray(ansValues, 2))
+    print()
+    print("Highest mean: " + ansValues[maxMeanindex][0])
+    print("Lowest mean: " + ansValues[minMeanindex][0])
+    print("Highest variance: " + ansValues[maxVarianceindex][0])
+    print("Lowest variance: " + ansValues[minVarianceindex][0])
 
 
 @handle("6")
