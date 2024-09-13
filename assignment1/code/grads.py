@@ -20,7 +20,8 @@ def foo(x):
 
 def foo_grad(x):
     # Your implementation here...
-    print("TODO: Not implemented yet")
+    # print("TODO: Not implemented yet")
+    return np.power(x, 3) * 4
 
 def bar(x):
     return np.prod(x)
@@ -28,6 +29,12 @@ def bar(x):
 def bar_grad(x):
     # Your implementation here...
     # Hint: This is a bit tricky - what if one of the x[i] is zero?
-    print("TODO: Not implemented yet")
+    x = np.array(x)
+    result = np.ones(len(x))
+    for i in range(len(x)):
+        maskArray = np.ones(len(x), dtype=bool)
+        maskArray[i] = False
+        result[i] = np.prod(x[maskArray])
+    return result
 
 
