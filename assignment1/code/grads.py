@@ -20,7 +20,8 @@ def foo(x):
 
 def foo_grad(x):
     # Your implementation here...
-    print("TODO: Not implemented yet")
+    # print("TODO: Not implemented yet")
+    return np.power(x, 3) * 4
 
 def bar(x):
     return np.prod(x)
