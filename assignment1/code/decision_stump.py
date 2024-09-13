@@ -179,4 +179,54 @@ class DecisionStumpInfoGain(DecisionStumpErrorRate):
     t_best = None
 
     """YOUR CODE HERE FOR Q6.3"""
-    print("TODO: Not implemented yet")
+    def fit(self, X, y):
+        n, d = X.shape
+
+        # Get an array with the number of 0's, number of 1's, etc.
+        count = np.bincount(y)
+
+        # Get the index of the largest value in count.
+        # Thus, y_mode is the mode (most popular value) of y
+        y_mode = np.argmax(count)
+
+        self.y_hat_yes = y_mode
+        self.y_hat_no = None
+        self.j_best = None
+        self.t_best = None
+
+        # If all the labels are the same, no need to split further
+        if np.unique(y).size <= 1:
+            return
+
+        maxInformationGain = 0
+
+        # Loop over features looking for the best split
+        for j in range(d):
+            for i in range(n):
+                # Choose value to equate to
+                t = X[i, j]
+
+                # Find most likely class for each split
+                is_less_than_threshold = X[:, j] < t
+                y_yes_mode = utils.mode(y[is_less_than_threshold])
+                y_no_mode = utils.mode(y[~is_less_than_threshold])
+
+                # Make predictions
+                y_pred = np.where(is_less_than_threshold, y_yes_mode, y_no_mode)
+
+                # information gain
+                freq_yes = np.count_nonzero(is_less_than_threshold) / n
+                freq_no = np.count_nonzero(~is_less_than_threshold) / n
+                entropy_y = entropy(np.bincount(y,minlength=2)/n)
+                entropy_y_leaf_1 = entropy(np.bincount(y[is_less_than_threshold], minlength=2)/n)
+                entropy_y_leaf_2 = entropy(np.bincount(y[~is_less_than_threshold], minlength=2)/n)
+                informationGain = entropy_y - freq_yes*entropy_y_leaf_1 - freq_no*entropy_y_leaf_2
+
+                # Compare to minimum error so far
+                if informationGain > maxInformationGain:
+                    # This is the lowest error, store this value
+                    maxInformationGain = informationGain
+                    self.j_best = j
+                    self.t_best = t
+                    self.y_hat_yes = y_yes_mode
+                    self.y_hat_no = y_no_mode
