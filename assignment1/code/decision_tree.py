@@ -76,3 +76,20 @@ class DecisionTree:
             y[no] = self.submodel_no.predict(X[no])
 
         return y
+
+class HardCodedDecisionTree:
+    def predict(self, X):
+        n, d = X.shape
+        y = np.zeros(n)
+        for i in range(n):
+            if (X[i, 1] > 37.669007):
+                if(X[i, 0] > -96.090109):
+                    y[i] = 0
+                else:
+                    y[i] = 1
+            else:
+                if(X[i, 0] > -115.577574):
+                    y[i] = 1
+                else:
+                    y[i] = 0
+        return y
