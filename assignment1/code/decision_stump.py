@@ -214,7 +214,7 @@ class DecisionStumpInfoGain(DecisionStumpErrorRate):
                 # Make predictions
                 y_hat = np.where(is_greater_than_t, y_yes_mode, y_no_mode)
 
-                # information gain
+                # Calcualate information gain
                 y_yes_freq = np.count_nonzero(is_greater_than_t) / n
                 y_no_freq = np.count_nonzero(~is_greater_than_t) / n
                 entropy_y = entropy(np.bincount(y)/n)
@@ -222,9 +222,9 @@ class DecisionStumpInfoGain(DecisionStumpErrorRate):
                 entropy_y_no = entropy(np.bincount(y[~is_greater_than_t])/n)
                 informationGain = entropy_y - y_yes_freq*entropy_y_yes - y_no_freq*entropy_y_no
 
-                # Compare to minimum error so far
+                # Compare to maximum infomration gain
                 if informationGain > maximum_information_gain:
-                    # This is the lowest error, store this value
+                    # This is the highest information gain, store this value
                     maximum_information_gain = informationGain
                     self.j_best = j
                     self.t_best = t
