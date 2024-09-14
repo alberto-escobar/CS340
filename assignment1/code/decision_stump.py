@@ -107,33 +107,33 @@ class DecisionStumpErrorRate:
         if np.unique(y).size <= 1:
             return
 
-        minError = np.sum(y != y_mode)
+        minimum_error = np.sum(y != y_mode)
 
         # Loop over features looking for the best split
         for j in range(d):
             for i in range(n):
-                # Choose value to equate to
+                # Choose threshold value
                 t = X[i, j]
 
                 # Find most likely class for each split
-                is_less_than_threshold = X[:, j] < t
-                y_yes_mode = utils.mode(y[is_less_than_threshold])
-                y_no_mode = utils.mode(y[~is_less_than_threshold])
+                is_greater_than_t = X[:, j] > t
+                y_yes = utils.mode(y[is_greater_than_t])
+                y_no = utils.mode(y[~is_greater_than_t])
 
                 # Make predictions
-                y_pred = np.where(is_less_than_threshold, y_yes_mode, y_no_mode)
+                y_hat = np.where(is_greater_than_t, y_yes, y_no)
 
                 # Compute error
-                errors = np.sum(y_pred != y)
+                errors = np.sum(y_hat != y)
 
                 # Compare to minimum error so far
-                if errors < minError:
+                if errors < minimum_error:
                     # This is the lowest error, store this value
-                    minError = errors
+                    minimum_error = errors
                     self.j_best = j
                     self.t_best = t
-                    self.y_hat_yes = y_yes_mode
-                    self.y_hat_no = y_no_mode
+                    self.y_hat_yes = y_yes
+                    self.y_hat_no = y_no
 
 
     def predict(self, X):
@@ -146,7 +146,7 @@ class DecisionStumpErrorRate:
         y_hat = np.zeros(n)
 
         for i in range(n):
-            if X[i, self.j_best] < self.t_best:
+            if X[i, self.j_best] > self.t_best:
                 y_hat[i] = self.y_hat_yes
             else:
                 y_hat[i] = self.y_hat_no
@@ -198,7 +198,7 @@ class DecisionStumpInfoGain(DecisionStumpErrorRate):
         if np.unique(y).size <= 1:
             return
 
-        maxInformationGain = 0
+        maximum_information_gain = 0
 
         # Loop over features looking for the best split
         for j in range(d):
@@ -207,25 +207,25 @@ class DecisionStumpInfoGain(DecisionStumpErrorRate):
                 t = X[i, j]
 
                 # Find most likely class for each split
-                is_less_than_threshold = X[:, j] < t
-                y_yes_mode = utils.mode(y[is_less_than_threshold])
-                y_no_mode = utils.mode(y[~is_less_than_threshold])
+                is_greater_than_t = X[:, j] > t
+                y_yes_mode = utils.mode(y[is_greater_than_t])
+                y_no_mode = utils.mode(y[~is_greater_than_t])
 
                 # Make predictions
-                y_pred = np.where(is_less_than_threshold, y_yes_mode, y_no_mode)
+                y_hat = np.where(is_greater_than_t, y_yes_mode, y_no_mode)
 
                 # information gain
-                freq_yes = np.count_nonzero(is_less_than_threshold) / n
-                freq_no = np.count_nonzero(~is_less_than_threshold) / n
-                entropy_y = entropy(np.bincount(y,minlength=2)/n)
-                entropy_y_leaf_1 = entropy(np.bincount(y[is_less_than_threshold], minlength=2)/n)
-                entropy_y_leaf_2 = entropy(np.bincount(y[~is_less_than_threshold], minlength=2)/n)
-                informationGain = entropy_y - freq_yes*entropy_y_leaf_1 - freq_no*entropy_y_leaf_2
+                y_yes_freq = np.count_nonzero(is_greater_than_t) / n
+                y_no_freq = np.count_nonzero(~is_greater_than_t) / n
+                entropy_y = entropy(np.bincount(y)/n)
+                entropy_y_yes = entropy(np.bincount(y[is_greater_than_t])/n)
+                entropy_y_no = entropy(np.bincount(y[~is_greater_than_t])/n)
+                informationGain = entropy_y - y_yes_freq*entropy_y_yes - y_no_freq*entropy_y_no
 
                 # Compare to minimum error so far
-                if informationGain > maxInformationGain:
+                if informationGain > maximum_information_gain:
                     # This is the lowest error, store this value
-                    maxInformationGain = informationGain
+                    maximum_information_gain = informationGain
                     self.j_best = j
                     self.t_best = t
                     self.y_hat_yes = y_yes_mode
