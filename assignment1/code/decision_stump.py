@@ -215,11 +215,13 @@ class DecisionStumpInfoGain(DecisionStumpErrorRate):
                 y_hat = np.where(is_greater_than_t, y_yes_mode, y_no_mode)
 
                 # Calcualate information gain
-                y_yes_freq = np.count_nonzero(is_greater_than_t) / n
-                y_no_freq = np.count_nonzero(~is_greater_than_t) / n
-                entropy_y = entropy(np.bincount(y,minlength=2)/n)
-                entropy_y_yes = entropy(np.bincount(y[is_greater_than_t],minlength=2)/n)
-                entropy_y_no = entropy(np.bincount(y[~is_greater_than_t],minlength=2)/n)
+                y_yes_freq = np.count_nonzero(is_greater_than_t) / n #number of examples in yes leaf
+                y_no_freq = np.count_nonzero(~is_greater_than_t) / n #number of examples in no leaf
+                if(np.count_nonzero(is_greater_than_t)==0 or np.count_nonzero(~is_greater_than_t)==0):
+                    continue
+                entropy_y = entropy(np.bincount(y,minlength=2)/n) 
+                entropy_y_yes = entropy(np.bincount(y[is_greater_than_t],minlength=2)/np.count_nonzero(is_greater_than_t))
+                entropy_y_no = entropy(np.bincount(y[~is_greater_than_t],minlength=2)/np.count_nonzero(~is_greater_than_t))
                 informationGain = entropy_y - y_yes_freq*entropy_y_yes - y_no_freq*entropy_y_no
 
                 # Compare to maximum infomration gain
@@ -230,3 +232,4 @@ class DecisionStumpInfoGain(DecisionStumpErrorRate):
                     self.t_best = t
                     self.y_hat_yes = y_yes_mode
                     self.y_hat_no = y_no_mode
+ 

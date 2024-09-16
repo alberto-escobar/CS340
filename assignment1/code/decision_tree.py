@@ -82,14 +82,14 @@ class HardCodedDecisionTree:
         n, d = X.shape
         y = np.zeros(n)
         for i in range(n):
-            if (X[i, 1] > 37.669007):
-                if(X[i, 0] > -96.090109):
+            if (X[i, 0] > -80.305106):
+                if(X[i, 1] > 36.453576):
                     y[i] = 0
                 else:
                     y[i] = 1
             else:
-                if(X[i, 0] > -115.577574):
-                    y[i] = 1
-                else:
+                if(X[i, 1] > 37.669007):
                     y[i] = 0
+                else:
+                    y[i] = 1
         return y

@@ -27,7 +27,7 @@ from decision_stump import (
     DecisionStumpErrorRate,
     DecisionStumpInfoGain,
 )
-from decision_tree import DecisionTree
+from decision_tree import DecisionTree, HardCodedDecisionTree
 
 
 @handle("3.4")
@@ -177,10 +177,19 @@ def q6_4():
     error = np.mean(y_pred != y)
 
     print(f"Error: {error:.3f}")
-
     plot_classifier(model, X, y)
-
     fname = Path("..", "figs", "q6_4_decisionBoundary.pdf")
+    plt.savefig(fname)
+    print(f"\nFigure saved as {fname}")
+    
+    hardCodedModel = HardCodedDecisionTree()
+    y_pred = hardCodedModel.predict(X)
+    error = np.mean(y_pred != y)
+    print(f"Hard Coded Error: {error:.3f}")
+
+    plot_classifier(hardCodedModel, X, y)
+
+    fname = Path("..", "figs", "q6_4_hardcodeddecisionBoundary.pdf")
     plt.savefig(fname)
     print(f"\nFigure saved as {fname}")
 
