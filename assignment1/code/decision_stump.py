@@ -217,9 +217,9 @@ class DecisionStumpInfoGain(DecisionStumpErrorRate):
                 # Calcualate information gain
                 y_yes_freq = np.count_nonzero(is_greater_than_t) / n
                 y_no_freq = np.count_nonzero(~is_greater_than_t) / n
-                entropy_y = entropy(np.bincount(y)/n)
-                entropy_y_yes = entropy(np.bincount(y[is_greater_than_t])/n)
-                entropy_y_no = entropy(np.bincount(y[~is_greater_than_t])/n)
+                entropy_y = entropy(np.bincount(y,minlength=2)/n)
+                entropy_y_yes = entropy(np.bincount(y[is_greater_than_t],minlength=2)/n)
+                entropy_y_no = entropy(np.bincount(y[~is_greater_than_t],minlength=2)/n)
                 informationGain = entropy_y - y_yes_freq*entropy_y_yes - y_no_freq*entropy_y_no
 
                 # Compare to maximum infomration gain
