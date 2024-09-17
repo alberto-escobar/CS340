@@ -54,9 +54,14 @@
 
   \title{CPSC 340 Assignment 1}
 
-  \date{}
+
+  \date{September 16, 2024}
   \maketitle
 
+Name: Alberto Escobar Mingo
+\newline
+Student ID: 92377860
+\newline
 
   \textbf{Commentary on Assignment 1}: CPSC 340 is tough because it combines knowledge and skills across several disciplines. To succeed
   in the course, you will need to know or very quickly get up to speed on:
@@ -144,7 +149,7 @@
   \item $x^TAx$ (quadratic form).
   \ans{$x^TAx = 19$}
   \item $A^TA$ (matrix tranpose and matrix multiplication).
-  \ans{$A^TA = \left[\begin{array}{ccc}11 & 10 & 10\\10 & 14 & 10\\10 & 10 & 34\end{array}\right]$}
+  \ans{$A^TA = \left[\begin{array}{ccc}11 & 10 & 10\\10 & 14 & 10\\10 & 10 & 14\end{array}\right]$}
   \end{enumerate}
   \newpage
   
@@ -166,7 +171,7 @@
   \item $A^T(B + IC) = A^TB + A^TC$.
   \ans{True}
   \item $(A + BC)^T = A^T + B^TC^T$.
-  \ans{True}
+  \ans{False}
   \item $x^TAy = y^TA^Tx$.
   \ans{True}
   \item $A^TA = AA^T$ if $A$ is a symmetric matrix.
@@ -212,7 +217,7 @@
   \item What is the probability that a random person who tests positive is a user, $P(D=1 \mid T=1)$?
   \ans{$P(D=1|T=1) = 0.009608$}
   \item Suppose you have given this test to a random person and it came back positive, are they likely to be a drug user?
-  \ans{$P(D=0|T=1) = 0.990362$}
+  \ans{No, if the test is positive it is likely they are not a drug user.}
   \item Suppose you are the designer of this drug test. You may change how the test is conducted, which may influence factors like false positive rate, false negative rate, and the number of samples collected. What is one factor you could change to make this a more useful test?
   \ans{Reduce the false positive rate.}
   \end{enumerate}
@@ -366,7 +371,7 @@ def bar_grad(x):
   \item What is the cost of finding the largest number in an unsorted list of $n$ numbers?
   \ans{$O(n)$}
   \item What is the cost of finding the smallest element greater than 0 in a \emph{sorted} list with $n$ numbers.
-  \ans{$O(1)$}
+  \ans{if array traversal it is $O(n)$, if binary search than $O(log(n))$}
   \item What is the cost of finding the value associated with a key in a hash table with $n$ numbers? \\(Assume the values and keys are both scalars.)
   \ans{$O(1)$}
   \item What is the cost of computing the inner product $a^Tx$, where $a$ is $d \times 1$ and $x$ is $d \times 1$?
@@ -383,7 +388,7 @@ def bar_grad(x):
   \begin{enumerate}
   \item $O(N)$
   \item $O(N)$
-  \item $O(N^2)$
+  \item $O(1)$
   \item $O(N^2)$
   \end{enumerate}
   }
@@ -648,7 +653,7 @@ class DecisionStumpErrorRate:
   number of classes solves this problem.
 \ans{ 
   \newline
-  Error: 0.253
+  Error: 0.325
   \centerfig{0.7}{./figs/DecisionStumpInfoGain_decisionBoundary}
   }
   \newpage
@@ -699,11 +704,13 @@ class DecisionStumpInfoGain(DecisionStumpErrorRate):
                 y_hat = np.where(is_greater_than_t, y_yes_mode, y_no_mode)
 
                 # Calcualate information gain
-                y_yes_freq = np.count_nonzero(is_greater_than_t) / n
-                y_no_freq = np.count_nonzero(~is_greater_than_t) / n
-                entropy_y = entropy(np.bincount(y,minlength=2)/n)
-                entropy_y_yes = entropy(np.bincount(y[is_greater_than_t],minlength=2)/n)
-                entropy_y_no = entropy(np.bincount(y[~is_greater_than_t],minlength=2)/n)
+                y_yes_freq = np.count_nonzero(is_greater_than_t) / n #number of examples in yes leaf
+                y_no_freq = np.count_nonzero(~is_greater_than_t) / n #number of examples in no leaf
+                if(np.count_nonzero(is_greater_than_t)==0 or np.count_nonzero(~is_greater_than_t)==0):
+                    continue
+                entropy_y = entropy(np.bincount(y,minlength=2)/n) 
+                entropy_y_yes = entropy(np.bincount(y[is_greater_than_t],minlength=2)/np.count_nonzero(is_greater_than_t))
+                entropy_y_no = entropy(np.bincount(y[~is_greater_than_t],minlength=2)/np.count_nonzero(~is_greater_than_t))
                 informationGain = entropy_y - y_yes_freq*entropy_y_yes - y_no_freq*entropy_y_no
 
                 # Compare to maximum infomration gain
@@ -740,16 +747,16 @@ class HardCodedDecisionTree:
         n, d = X.shape
         y = np.zeros(n)
         for i in range(n):
-            if (X[i, 1] > 37.669007):
-                if(X[i, 0] > -96.090109):
+            if (X[i, 0] > -80.305106):
+                if(X[i, 1] > 36.453576):
                     y[i] = 0
                 else:
                     y[i] = 1
             else:
-                if(X[i, 0] > -115.577574):
-                    y[i] = 1
-                else:
+                if(X[i, 1] > 37.669007):
                     y[i] = 0
+                else:
+                    y[i] = 1
         return y
 \end{minted}
 \newpage
@@ -771,7 +778,7 @@ class HardCodedDecisionTree:
   Note: the code also prints out the amount of time spent. You'll notice that sklearn's implementation is substantially faster. This is because
   our implementation is based on the $O(n^2d)$ decision stump learning algorithm and sklearn's implementation presumably uses the faster $O(nd\log n)$
   decision stump learning algorithm that we discussed in lecture.
-  \ans{ \newline In the file, \texttt{6\_5\_tree\_errors.pdf}, there is a graph with the x-axis labeled as \texttt{Depth of tree} and the y-axis labeled as \texttt{classification error}. The graph compares the classification error as the tree grows in depths for three different implementations of decision trees, trees built using \texttt{DecisionStumpErrorRate}, trees built using \texttt{DecisionStumpInfoGain}, and scikit-learn's implementation of decision trees. After a depth of 9 is reached, the error rates for each implementation plateaus, the lowest error rate is scikit-learn's implementation, followed by \texttt{DecisionStumpInfoGain}, and finally \texttt{DecisionStumpErrorRate}. Below is the graph described.\centerfig{0.7}{./figs/q6_5_tree_errors}Some interpretations, the scikit-learn's implementation has an classification error of 0 which means it can accurately predict the given dataset but this runs the risk that the model may be over fitted. The other two implementations have higher classification error meaning that they cannot predict the given dataset as accurately. This means less of a risk of over fitting but also that it is not accurate. Below is the classification boundary plot of the model with the lowest training error (\texttt{sklearn}):\centerfig{0.7}{./figs/q6_5_decisionBoundary}}
+  \ans{ \newline In the file, \texttt{6\_5\_tree\_errors.pdf}, there is a graph with the x-axis labeled as \texttt{Depth of tree} and the y-axis labeled as \texttt{classification error}. The graph compares the classification error as the tree grows in depths for three different implementations of decision trees, trees built using \texttt{DecisionStumpErrorRate}, trees built using \texttt{DecisionStumpInfoGain}, and scikit-learn's implementation of decision trees. After a depth of 9 is reached, the error rates for each implementation plateaus (\texttt{errorgain} plateaus earlier however at depth 5), the lowest error rate is scikit-learn's implementation and \texttt{DecisionStumpInfoGain} (both have the same error curve surprisingly), \texttt{DecisionStumpErrorRate} has a higher error. Below is the graph described.\centerfig{0.7}{./figs/q6_5_tree_errors}Some interpretations, the scikit-learn's and \texttt{DecisionStumpInfoGain} implementation both have a classification error of 0 after dpeth 9 which means it can accurately predict the given dataset but this runs the risk that the models may be over fitted. The \texttt{DecisionStumpErrorRate} implementations has a higher classification error meaning that they cannot predict the given dataset as accurately. This means less of a risk of over fitting but also that it is not accurate. Below is the classification boundary plot of one of the models with the lowest training error (\texttt{sklearn}):\centerfig{0.7}{./figs/q6_5_decisionBoundary}}
 
   
   \newpage
@@ -784,6 +791,6 @@ class HardCodedDecisionTree:
   that the implementations are probably equivalent?
   
   \ans{  \newline
-  If two models had the same curve of classification error rate vs. tree depth, it would not be conclusive that the implementation for both is equivalent. The reason being is that the curve may be the same because the dataset used for producing the curve for both models produced the same curve. Further experiments would have to be done to answer the question: are the models's implementation the same? One could experiment on multiple data sets and observe the curves produced for each dataset. AS well, one could measure the computational run time for the models and see if they are similar or not. 
+  If two models had the same curve of classification error rate vs. tree depth, it would not be conclusive that the implementation for both is equivalent. The reason being is that the curve may be the same because the dataset used for producing the curve for both models produced the same curve. Further experiments would have to be done to answer the question: are the models's implementation the same? One could experiment on multiple data sets and observe the curves produced for each dataset.
 }
 \end{document}
