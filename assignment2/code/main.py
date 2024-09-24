@@ -33,7 +33,30 @@ def q1():
     y_test = dataset["ytest"]
 
     """YOUR CODE HERE FOR Q1. Also modify knn.py to implement KNN predict."""
-    raise NotImplementedError()
+    k_values = [1, 3, 10]
+    for k in k_values:
+        model = KNN(k)
+        model.fit(X, y)
+
+        y_pred = model.predict(X)
+        tr_error = np.mean(y_pred != y)
+
+        y_pred = model.predict(X_test)
+        te_error = np.mean(y_pred != y_test)
+        print("k: %d" % k)
+        print("Training error: %.3f" % tr_error)
+        print("Testing error: %.3f" % te_error)
+        if k == 1:
+            plot_classifier(model, X, y)
+            fname = Path("..", "figs", "q1_3_citiesSmallKNNPlot.pdf")
+            plt.savefig(fname)
+            valModel = KNeighborsClassifier(1)
+            valModel.fit(X,y)
+            plot_classifier(valModel, X, y)
+            fname = Path("..", "figs", "q1_3_citiesSmallSKLearnKNNPlot.pdf")
+            plt.savefig(fname)
+    # 1.4 each training point is its own neighbour, so error is zero. The model just memorizes the training data so when you pass training data in to calculate training error, it just matches the given point to the point it memorizes
+    # 1.5 to find the best k, we would perform cross-validation.
 
 
 

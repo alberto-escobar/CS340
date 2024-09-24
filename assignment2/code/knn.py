@@ -21,5 +21,15 @@ class KNN:
 
     def predict(self, X_hat):
         """YOUR CODE HERE FOR Q1"""
-        raise NotImplementedError()
+        d = euclidean_dist_squared(X_hat, self.X)
+        y_hat = []
+        for row in d:
+            nn = np.argsort(row)[0:self.k]
+            y = np.array(self.y)
+            y = y_hat.append(utils.mode(y[nn]))
+        return y_hat
+            
+            
+
+
 
