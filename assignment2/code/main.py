@@ -70,7 +70,8 @@ def q2():
 
     ks = list(range(1, 30, 4))
     """YOUR CODE HERE FOR Q2"""
-    print(crossValidateModalKNN(X, y, 2))
+    for k in ks:
+        print(crossValidateModalKNN(X, y, k))
     
 def splitDataSet(X, y, split=0.1):
     #check if nparray or not
@@ -81,8 +82,8 @@ def splitDataSet(X, y, split=0.1):
     for i in range(number_of_test_examples):
         mask[i] = True
     X_test = X[mask]
-    X_train = X[~mask]
     y_test = y[mask]
+    X_train = X[~mask]
     y_train = y[~mask]
     return X_train, y_train, X_test, y_test
 
@@ -94,9 +95,8 @@ def crossValidateModalKNN(X, y, k):
         model.fit(X_train, y_train)
         y_hat = model.predict(X_test)
         accuracies.append(np.sum(y_hat == y_test)/len(y_hat))
-        X = np.concatenate([X_train, X_train], axis=0)
-        y = np.concatenate([y_train, y_train], axis=0)
-        print(i)
+        X = np.concatenate([X_train, X_test], axis=0)
+        y = np.concatenate([y_train, y_test], axis=0)
     return np.sum(accuracies)/10
 
 
