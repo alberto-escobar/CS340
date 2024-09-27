@@ -70,8 +70,34 @@ def q2():
 
     ks = list(range(1, 30, 4))
     """YOUR CODE HERE FOR Q2"""
+    cross_validation_accuracies = []
+    test_accuracies = []
+    cross_validation_training_error = []
+    training_error = []
     for k in ks:
-        print(crossValidateModalKNN(X, y, k))
+        accuracy, error = crossValidateModalKNN(X, y, k)
+        cross_validation_accuracies.append(accuracy)
+        cross_validation_training_error.append(error)
+        model = KNN(k)
+        model.fit(X, y)
+        y_hat = model.predict(X_test)
+        test_accuracies.append(np.mean(y_hat == y_test))
+
+        y_hat = model.predict(X)
+        training_error.append(np.mean(y_hat != y))
+    plt.plot(ks, cross_validation_accuracies, label='cross validation', linestyle='-', color='blue', marker='o')
+    plt.plot(ks, test_accuracies, label='test accuracy', linestyle='-', color='red', marker='x')
+    plt.xlabel('k')
+    plt.ylabel('accuracy')
+    plt.legend()
+    plt.show()
+    plt.plot(ks, cross_validation_training_error, label='cross validation', linestyle='-', color='blue', marker='o')
+    plt.plot(ks, training_error, label='training error', linestyle='-', color='red', marker='x')
+    plt.xlabel('k')
+    plt.ylabel('training error')
+    plt.legend()
+    plt.show()
+
     
 def splitDataSet(X, y, split=0.1):
     #check if nparray or not
@@ -89,15 +115,19 @@ def splitDataSet(X, y, split=0.1):
 
 def crossValidateModalKNN(X, y, k):
     accuracies = []
+    error = []
     for i in range(10):
         model = KNN(k)
         X_train, y_train, X_test, y_test = splitDataSet(X, y)
         model.fit(X_train, y_train)
         y_hat = model.predict(X_test)
-        accuracies.append(np.sum(y_hat == y_test)/len(y_hat))
+        accuracies.append(np.mean(y_hat == y_test))
+        
+        y_hat = model.predict(X_train)
+        error.append(np.mean(y_hat != y_train))
         X = np.concatenate([X_train, X_test], axis=0)
         y = np.concatenate([y_train, y_test], axis=0)
-    return np.sum(accuracies)/10
+    return np.mean(accuracies), np.mean(error)
 
 
 
@@ -113,7 +143,13 @@ def q3_2():
     wordlist = dataset["wordlist"]
 
     """YOUR CODE HERE FOR Q3.2"""
-    raise NotImplementedError()
+    print("3.2.1 answer")
+    print(wordlist[72])
+    print("3.2.2 answer")
+    print(np.array(wordlist)[X[802]])
+    print("3.2.3 answer")
+    print(groupnames[y[802]])
+    #raise NotImplementedError()
 
 
 
