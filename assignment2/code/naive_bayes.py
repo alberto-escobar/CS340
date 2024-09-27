@@ -29,13 +29,15 @@ class NaiveBayes:
         # Compute the conditional probabilities i.e.
         # p(x_ij=1 | y_i==c) as p_xy[j, c]
         # p(x_ij=0 | y_i==c) as 1 - p_xy[j, c]
-        p_xy = 0.5 * np.ones((d, k))
+        p_xy = 0.5 * np.ones((d, k)) # an array of d arrays where each array is k length
 
         for c in range(k):
-            indicies_c = np.array(y == c)
-            X_c = X[indicies_c]
-            p_xy[:, c] = np.mean(X_c, axis=0)
-
+            indicies_c = np.array(y == c) # basically an array that is length of y but has 1 where the element equals c and zero otherwise
+            X_c = X[indicies_c] # a matrix where all the examples are the examples where the label equals c
+            p_xy[:, c] = np.mean(X_c, axis=0) 
+            # this mean is basically finding the mean of an entire column in x_c 
+            # (hence axis = 0), so this returns an array of length d
+            # the array is inserted into p_xy as a column at index c.
 
         self.p_y = p_y
         self.p_xy = p_xy
@@ -68,7 +70,24 @@ class NaiveBayesLaplace(NaiveBayes):
 
     def fit(self, X, y):
         """YOUR CODE FOR Q3.4"""
-        raise NotImplementedError()
+        n, d = X.shape
+        k = self.num_classes
+
+        counts = np.bincount(y)
+        p_y = (counts + self.beta) / (n + 2*self.beta)
+
+        # Compute the conditional probabilities i.e.
+        # p(x_ij=1 | y_i==c) as p_xy[j, c]
+        # p(x_ij=0 | y_i==c) as 1 - p_xy[j, c]
+        p_xy = 0.5 * np.ones((d, k)) # an array of d arrays where each array is k length
+
+        for c in range(k):
+            indicies_c = np.array(y == c) # basically an array that is length of y but has 1 where the element equals c and zero otherwise
+            X_c = X[indicies_c] # a matrix where all the examples are the examples where the label equals c
+            p_xy[:, c] = (np.sum(X_c, axis=0) + self.beta) / (len(indicies_c) + 2*self.beta)
+            # this mean is basically finding the mean of an entire column in x_c 
+            # (hence axis = 0), so this returns an array of length d
+            # the array is inserted into p_xy as a column at index c.
 
 
         self.p_y = p_y

@@ -130,6 +130,31 @@ def crossValidateModalKNN(X, y, k):
     return np.mean(accuracies), np.mean(error)
 
 
+@handle("3.1")
+# 3.1.1
+# 1. = 0.6
+# 2. = 0.4
+
+# 3.1.2
+# 1. = 1/6
+# 2. = 5/6
+# 3. = 2/6
+# 4. = 3/4
+# 5. = 1/4
+# 6. = 3/4
+
+# 3.1.3
+# P(Spam|new example) = P(Spam)P(my name|spam)P(lottery|spam)(P(~venmo|spam))
+# =0.6*1/6*5/6*2/6
+
+# 3.1.4
+# data set with two new rows
+# [1 1 1 | 1]
+# [1 1 1 | 0]
+
+# then new calculation would be
+# P(Spam|new example) = P(Spam)P(my name|spam)P(lottery|spam)(P(~venmo|spam))
+# =7/12*2/7*6/7*3/7
 
 @handle("3.2")
 def q3_2():
@@ -151,8 +176,6 @@ def q3_2():
     print(groupnames[y[802]])
     #raise NotImplementedError()
 
-
-
 @handle("3.3")
 def q3_3():
     dataset = load_dataset("newsgroups.pkl")
@@ -167,7 +190,7 @@ def q3_3():
     print(f"t = {X_valid.shape[0]}")
     print(f"Num classes = {len(np.unique(y))}")
 
-    """CODE FOR Q3.4: Modify naive_bayes.py/NaiveBayesLaplace"""
+    """CODE FOR Q3.3: Modify naive_bayes.py/NaiveBayes"""
 
     model = NaiveBayes(num_classes=4)
     model.fit(X, y)
@@ -199,8 +222,38 @@ def q3_4():
     model.fit(X, y)
 
     """YOUR CODE HERE FOR Q3.4. Also modify naive_bayes.py/NaiveBayesLaplace"""
-    raise NotImplementedError()
+    
+    y_hat = model.predict(X)
+    err_train = np.mean(y_hat != y)
+    print(f"Naive Bayes training error: {err_train:.3f}")
 
+    y_hat = model.predict(X_valid)
+    err_valid = np.mean(y_hat != y_valid)
+    print(f"Naive Bayes validation error: {err_valid:.3f}")
+
+    model_lp = NaiveBayesLaplace(num_classes=4, beta=1)
+    model_lp.fit(X, y)
+
+    y_hat = model_lp.predict(X)
+    err_train = np.mean(y_hat != y)
+    print(f"Naive Bayes with laplace smoothing training error: {err_train:.3f}")
+
+    y_hat = model_lp.predict(X_valid)
+    err_valid = np.mean(y_hat != y_valid)
+    print(f"Naive Bayes with laplace smoothing validation error: {err_valid:.3f}")
+    model_lp1k = NaiveBayesLaplace(num_classes=4, beta=1000)
+    model_lp1k.fit(X, y)
+    plt.plot(range(100), model.p_xy[:,0], label='naive bayes', linestyle='-', color='blue', marker='o')
+    plt.plot(range(100), model_lp.p_xy[:,0], label='naive bays with laplace = 1', linestyle='-', color='red', marker='x')
+    plt.plot(range(100), model_lp1k.p_xy[:,0], label='naive bays with laplace = 1000', linestyle='-', color='green', marker='.')
+    plt.xlabel('j')
+    plt.ylabel('P(x_ij|y_i==0)')
+    plt.legend()
+    plt.show()
+
+    
+@handle("3.5")
+# O(t*k*d)
 
 
 @handle("4")
@@ -227,7 +280,23 @@ def q4():
     evaluate_model(DecisionTree(max_depth=np.inf, stump_class=DecisionStumpInfoGain))
 
     """YOUR CODE FOR Q4. Also modify random_tree.py/RandomForest"""
-    raise NotImplementedError()
+    print("Random tree")
+    evaluate_model(RandomTree(max_depth=np.inf))
+    # Q4.1.1 random tree has training error and does not over fit because at each stump, 
+    # the feature it fits on is from a sub set of all the features in the data set. 
+    # so it never chooses the optimal feature to fit at every stump since it can only fit 
+    # on a sub set of the features randomly choosen 
+
+    # Q4.1.2 it terminates eventually because the RandomTree fitting has a condition that if a stump_model has a j_best == None
+    # it stops. J_best will occur if a stump is given a data set that has one example.
+
+    print("Random forest")
+    evaluate_model(RandomForest(50, np.inf))
+
+    # Q4.1.5 a forest will fit the data perfectly, by averaging the predictions of each random tree. This results 
+    # in the whole forest fitting the data perfectly and is not over fitting since it is not possible to 
+    # over fit the data on the individual random trees. Using this method you achieve wisdom of the crowds.
+
 
 
 

@@ -29,13 +29,25 @@ class RandomForest:
     """
 
     def __init__(self, num_trees, max_depth):
-        raise NotImplementedError()
+        self.trees = []
+        self.num_trees = num_trees
+        self.max_depth = max_depth
+        for i in range(num_trees):
+            self.trees.append(RandomTree(max_depth=max_depth))
 
 
     def fit(self, X, y):
-        raise NotImplementedError()
+        for randomTree in self.trees:
+            randomTree.fit(X, y)
 
 
     def predict(self, X_pred):
-        raise NotImplementedError()
+        tree_y_hat = []
+        for randomTree in self.trees:
+            tree_y_hat.append(randomTree.predict(X_pred))
+        tree_y_hat = np.array(tree_y_hat)
+        y_hat = []
+        for i in range(len(tree_y_hat[0])):
+            y_hat.append(utils.mode(tree_y_hat[:,i]))
+        return y_hat
 
