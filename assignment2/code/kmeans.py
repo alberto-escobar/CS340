@@ -34,13 +34,13 @@ class Kmeans:
                     means[kk] = X[y == kk].mean(axis=0)
 
             changes = np.sum(y != y_old)
-            # print('Running K-means, changes in cluster assignment = {}'.format(changes))
+            print('Running K-means, changes in cluster assignment = {}'.format(changes))
 
             # Stop if no point changed cluster
             if changes == 0:
                 break
 
-            # print(self.error(X, y, means))
+            print(self.error(X, y, means))
 
         self.means = means
 
@@ -52,5 +52,10 @@ class Kmeans:
 
     def error(self, X, y, means):
         """YOUR CODE HERE FOR Q5.1"""
-        raise NotImplementedError()
+        if len(X) != len(y):
+            raise RuntimeError()
+        sum = 0
+        for i in range(len(y)):
+            sum = sum + np.sum((X[i]-means[y[i]])**2)
+        return sum
 

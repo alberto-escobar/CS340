@@ -319,7 +319,21 @@ def q5_1():
     X = load_dataset("clusterData.pkl")["X"]
 
     """YOUR CODE HERE FOR Q5.1. Also modify kmeans.py/Kmeans"""
-    raise NotImplementedError()
+    error = np.inf
+    for i in range(50):
+        model = Kmeans(k=4)
+        model.fit(X)
+        y = model.predict(X)
+        error_i = model.error(X,y,model.means)
+        if (error_i < error):
+            error = error_i
+            plt.scatter(X[:, 0], X[:, 1], c=y, cmap="jet")
+
+    print(f"Best error obtained: {error}")
+    fname = Path("..", "figs", "kmeans_basic_rerun.png")
+    plt.savefig(fname)
+    print(f"Figure saved as {fname}")
+
 
 
 
@@ -328,6 +342,28 @@ def q5_2():
     X = load_dataset("clusterData.pkl")["X"]
 
     """YOUR CODE HERE FOR Q5.2"""
+    # Q5.1.1 the error goes to zero as k goes to infinity. You can never minimize the error until each cluster represents one example
+    # Q5.1.2 yea probably? but I am not sure why
+    # Q5.1.3 
+    ks = range(1,11)
+    errors = []
+    for k in ks:
+        error = np.inf
+        for i in range(50):
+            model = Kmeans(k=k)
+            model.fit(X)
+            y = model.predict(X)
+            error_i = model.error(X,y,model.means)
+            if (error_i < error):
+                error = error_i
+        errors.append(error)
+    plt.plot(ks, errors, linestyle='-', color='blue', marker='.')
+    plt.xlabel('k')
+    plt.ylabel('minimum errors')
+    plt.show()
+
+                
+    
     raise NotImplementedError()
 
 
