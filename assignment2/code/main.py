@@ -70,33 +70,65 @@ def q2():
 
     ks = list(range(1, 30, 4))
     """YOUR CODE HERE FOR Q2"""
-    cross_validation_accuracies = []
-    test_accuracies = []
-    cross_validation_training_error = []
+    def splitDataSet(X, y, split=0.1):
+        X = np.array(X)
+        y = np.array(y)
+        number_of_test_examples = int(len(y)*split)
+        mask = np.zeros(len(y), dtype=bool)
+        for i in range(number_of_test_examples):
+            mask[i] = True
+        X_test = X[mask]
+        y_test = y[mask]
+        X_train = X[~mask]
+        y_train = y[~mask]
+        return X_train, y_train, X_test, y_test
+
+    def crossValidateKNN(X, y, k):
+        accuracies = []
+        #error = []
+        for i in range(10):
+            model = KNN(k)
+            X_train, y_train, X_test, y_test = splitDataSet(X, y)
+            model.fit(X_train, y_train)
+            y_hat = model.predict(X_test)
+            accuracies.append(np.mean(y_hat == y_test))
+            
+            #y_hat = model.predict(X_train)
+            #error.append(np.mean(y_hat != y_train))
+            X = np.concatenate([X_train, X_test], axis=0)
+            y = np.concatenate([y_train, y_test], axis=0)
+        return np.mean(accuracies) #, np.mean(error)
+    
+    cv_accs = []
+    test_accs = []
+    #cross_validation_training_error = []
     training_error = []
     for k in ks:
-        accuracy, error = crossValidateModalKNN(X, y, k)
-        cross_validation_accuracies.append(accuracy)
-        cross_validation_training_error.append(error)
+        #accuracy, error = crossValidateKNN(X, y, k)
+        #cv_accs.append(accuracy)
+        cv_accs.append(crossValidateKNN(X, y, k))
+        #cross_validation_training_error.append(error)
         model = KNN(k)
         model.fit(X, y)
         y_hat = model.predict(X_test)
-        test_accuracies.append(np.mean(y_hat == y_test))
+        test_accs.append(np.mean(y_hat == y_test))
 
         y_hat = model.predict(X)
         training_error.append(np.mean(y_hat != y))
-    plt.plot(ks, cross_validation_accuracies, label='cross validation', linestyle='-', color='blue', marker='o')
-    plt.plot(ks, test_accuracies, label='test accuracy', linestyle='-', color='red', marker='x')
+    plt.plot(ks, cv_accs, label='cross validation', linestyle='-', color='blue', marker='o')
+    plt.plot(ks, test_accs, label='test accuracy', linestyle='-', color='red', marker='x')
     plt.xlabel('k')
     plt.ylabel('accuracy')
     plt.legend()
-    plt.show()
-    plt.plot(ks, cross_validation_training_error, label='cross validation', linestyle='-', color='blue', marker='o')
+    fname = Path("..", "figs", "q2_cross validation accuracy vs test accuracy.pdf")
+    plt.savefig(fname)
+    #plt.plot(ks, cross_validation_training_error, label='cross validation', linestyle='-', color='blue', marker='o')
+    plt.close()
     plt.plot(ks, training_error, label='training error', linestyle='-', color='red', marker='x')
     plt.xlabel('k')
     plt.ylabel('training error')
-    plt.legend()
-    plt.show()
+    fname = Path("..", "figs", "q2_training error for ks.pdf")
+    plt.savefig(fname)
 
     
 def splitDataSet(X, y, split=0.1):
@@ -241,15 +273,25 @@ def q3_4():
     y_hat = model_lp.predict(X_valid)
     err_valid = np.mean(y_hat != y_valid)
     print(f"Naive Bayes with laplace smoothing validation error: {err_valid:.3f}")
-    model_lp1k = NaiveBayesLaplace(num_classes=4, beta=1000)
-    model_lp1k.fit(X, y)
+    model_lp10k = NaiveBayesLaplace(num_classes=4, beta=10000)
+    model_lp10k.fit(X, y)
+
+    y_hat = model_lp10k.predict(X)
+    err_train = np.mean(y_hat != y)
+    print(f"Naive Bayes with laplace smoothing beta = 1000 training error: {err_train:.3f}")
+
+    y_hat = model_lp.predict(X_valid)
+    err_valid = np.mean(y_hat != y_valid)
+    print(f"Naive Bayes with laplace smoothing beta = 1000 validation error: {err_valid:.3f}")
+
     plt.plot(range(100), model.p_xy[:,0], label='naive bayes', linestyle='-', color='blue', marker='o')
     plt.plot(range(100), model_lp.p_xy[:,0], label='naive bays with laplace = 1', linestyle='-', color='red', marker='x')
-    plt.plot(range(100), model_lp1k.p_xy[:,0], label='naive bays with laplace = 1000', linestyle='-', color='green', marker='.')
+    plt.plot(range(100), model_lp10k.p_xy[:,0], label='naive bays with laplace = 10000', linestyle='-', color='green', marker='.')
     plt.xlabel('j')
     plt.ylabel('P(x_ij|y_i==0)')
-    plt.legend()
-    plt.show()
+    fname = Path("..", "figs", "laplace smoothing comparisons.png")
+    plt.savefig(fname)
+    print(f"Figure saved as {fname}")
 
     
 @handle("3.5")
@@ -330,7 +372,7 @@ def q5_1():
             plt.scatter(X[:, 0], X[:, 1], c=y, cmap="jet")
 
     print(f"Best error obtained: {error}")
-    fname = Path("..", "figs", "kmeans_basic_rerun.png")
+    fname = Path("..", "figs", "kmeans_best_run.png")
     plt.savefig(fname)
     print(f"Figure saved as {fname}")
 
@@ -359,8 +401,10 @@ def q5_2():
         errors.append(error)
     plt.plot(ks, errors, linestyle='-', color='blue', marker='.')
     plt.xlabel('k')
-    plt.ylabel('minimum errors')
-    plt.show()
+    plt.ylabel('minimum error')
+    fname = Path("..", "figs", "kmeans minimum error vs k.png")
+    plt.savefig(fname)
+    print(f"Figure saved as {fname}")
 
                 
     
