@@ -52,7 +52,7 @@
 
 \begin{document}
     \title{CPSC 340 Assignment 2}
-    \author{}
+    \author{Talisha Griesbach (54645544), Alberto Escobar Mingo (92377860)}
     \date{}
     \maketitle
     \vspace{-4em}
@@ -91,17 +91,18 @@
          \newpage
          
         \item \ask{Report the training and test error} obtained on the \emph{citiesSmall} dataset for $k=1$, $k=3$, and $k=10$. \emph{Optionally}, try running a decision tree on this same train/test split; which gets better test accuracy? \pts{4}
-        \ans{\newline k: 1 \newline Training error: 0.000 \newline Testing error: 0.065 \newline\newline k: 3 \newline Training error: 0.028 \newline Testing error: 0.066 \newline\newline k: 10 \newline Training error: 0.058 \newline Testing error: 0.085}
+        
+        \ans{\newline k: 1 \newline Training error: 0.000 \newline Testing error: 0.0645 \newline\newline k: 3 \newline Training error: 0.0275 \newline Testing error: 0.066 \newline\newline k: 10 \newline Training error: 0.0575 \newline Testing error: 0.085}
         
         \item Generate a plot with \texttt{utils.plot\_classifier} on the \emph{citiesSmall} dataset (plotting the training points) for $k=1$, using your implementation of kNN. \ask{Include the plot here.} To see if your implementation makes sense, you might want to check against the plot using \texttt{sklearn.neighbors.KNeighborsClassifier}. Remember that the assignment 1 code had examples of plotting with this function and saving the result, if that would be helpful. \pts{2}
         \ans{
         \centerfig{.6}{figs/q1_3_citiesSmallKNNPlot.pdf}
         }
         \item Why is the training error $0$ for $k=1$? \pts{2}
-        \ans{each training point is its own neighbour, so error is zero. The model just memorizes the training data so when you pass training data in to calculate training error, it just matches the given point to the point it memorizes}
+        \ans{Each training point is its own neighbour, so error is zero. The model just memorizes the training data so when you pass training data in to calculate training error, it just matches the given point to the point it memorizes}
         
         \item Recall that we want to choose hyper-parameters so that the test error is (hopefully) minimized. How would you choose $k$? \pts{2}
-        \ans{We can use cross-validation on various k values and select the k that has the lowest test error from cross-validation.}
+        \ans{We can split the training data into training and cross-validation data, then use cross-validation on various k values and select the k that has the lowest error from cross-validation.}
         
     \end{enumerate}
 
@@ -137,23 +138,24 @@
                 mask = np.zeros(len(y), dtype=bool)
                 for i in range(number_of_test_examples):
                     mask[i] = True
-                X_test = X[mask]
-                y_test = y[mask]
+                X_cv = X[mask]
+                y_cv = y[mask]
                 X_train = X[~mask]
                 y_train = y[~mask]
-                return X_train, y_train, X_test, y_test
+                return X_train, y_train, X_cv, y_cv
         
             def crossValidateKNN(X, y, k):
                 accuracies = []
                 for i in range(10):
                     model = KNN(k)
-                    X_train, y_train, X_test, y_test = splitDataSet(X, y)
+                    X_train, y_train, X_cv, y_cv = splitDataSet(X, y)
                     model.fit(X_train, y_train)
-                    y_hat = model.predict(X_test)
-                    accuracies.append(np.mean(y_hat == y_test))
-                    
-                    X = np.concatenate([X_train, X_test], axis=0)
-                    y = np.concatenate([y_train, y_test], axis=0)
+                    y_hat = model.predict(X_cv)
+                    accuracies.append(np.mean(y_hat == y_cv))
+
+                    # Append X_cv, and y_cv to X_train and y_train respectively  
+                    X = np.concatenate([X_train, X_cv], axis=0)
+                    y = np.concatenate([y_train, y_cv], axis=0)
                 return np.mean(accuracies)
             
             cv_accs = []
@@ -199,13 +201,13 @@
         %
 
         \item Which $k$ would cross-validation choose in this case? Which $k$ has the best test accuracy? Would the cross-validation $k$ do okay (qualitatively) in terms of test accuracy? \pts{2}
-        \ans{ The best $k$ was chosen by finding the highest point in each data series cross validation and test accuracy. The best $k$ with respect to cross validation data series is $k = 9$. The best $k$ with respect to test accuracy data series is $k = 17$. For $k = 9$, if comparing the cross validation accuracy to the test accuracy, the difference in accuracy is okay but could be better. }
+        \ans{ The best $k$ was chosen by finding the highest point in each data series cross validation and test accuracy. The best $k$ with respect to cross validation data series is $k = 17$. The best $k$ with respect to test accuracy data series is $k = 9$. For $k = 17$, if comparing the cross validation accuracy to the test accuracy, the difference in accuracy is okay and not too big of a difference. This is because $k = 17$ chosen from cross-validation is still near the peak maximum accuracy, and test sets are subjective too - different test sets yield different accuracy values.}
         %
         \newpage
 
         \item Separately, \ask{submit a plot of the training error as a function of $k$. How would the $k$ with best training error do in terms of test error, qualitatively?} \pts{3}
 
-        \ans{ the best $k$ in the training error plot is $k = 1$. This $k$ value would result in a low accuracy based on the accuracy plot above ($< 0.68$).
+        \ans{ the best $k$ in the training error plot is $k = 1$. This $k$ value would result in a low accuracy based on the accuracy plot above ($< 0.68$), because $k = 1$ is over-fit to the training data.
         \centerfig{.7}{figs/q2_training error for ks.pdf}
         }
         %
@@ -293,37 +295,39 @@
 
     \ask{Under the naive Bayes model and your estimates of the above probabilities, what is the most likely label for the test example? \textbf{(Show your work.)}}
     
-    \ans{Most likely label for the test example is $\text{not spam}$. Work shown below:}
+    \ans{Most likely label for the test example is $\text{not spam}$. Work shown below:
     \
     \[
-    \Pr(\text{spam} \mid \hat{x} = \begin{bmatrix}1 & 1 & 0\end{bmatrix})=
+    \Pr(\text{spam} \mid \hat{x} = \begin{bmatrix}1 & 1 & 0\end{bmatrix})
     \]
     \[
-    \Pr(\text{spam})*\Pr(\text{$<$your name$>$} = 1  \mid \text{spam})*\Pr(\text{lottery} = 1 \mid \text{spam})*\Pr(\text{Venmo} = 0  \mid \text{spam})
+    = \Pr(\text{spam})*\Pr(\text{$<$your name$>$} = 1  \mid \text{spam})*\Pr(\text{lottery} = 1 \mid \text{spam})*\Pr(\text{Venmo} = 0  \mid \text{spam})
     \]
     \[
-    0.6 * 0.166... * 0.833... * 0.333...
+    = 0.6 * 0.166... * 0.833... * 0.333...
     \]
     \[
-    0.02777...
+    = 0.02777...
     \]
     \newline
     \[
     \Pr(\text{not spam} \mid \hat{x} = \begin{bmatrix}1 & 1 & 0\end{bmatrix})=
     \]
     \[
-    \Pr(\text{not spam})*\Pr(\text{$<$your name$>$} = 1  \mid \text{not spam})*\Pr(\text{lottery} = 1 \mid \text{not spam})*\Pr(\text{Venmo} = 0  \mid \text{not spam})
+    = \Pr(\text{not spam})*\Pr(\text{$<$your name$>$} = 1  \mid \text{not spam})*\Pr(\text{lottery} = 1 \mid \text{not spam})*\Pr(\text{Venmo} = 0  \mid \text{not spam})
     \]
     \[
-    0.4 * 0.75 * 0.25 * 0.75
+    = 0.4 * 0.75 * 0.25 * 0.75
     \]
     \[
-    0.05625
+    = 0.05625
     \]
     \newline
+    Therefore, since 
     \[
     Pr(\text{not spam} \mid \hat{x} = \begin{bmatrix}1 & 1 & 0\end{bmatrix}) > Pr(\text{spam} \mid \hat{x} = \begin{bmatrix}1 & 1 & 0\end{bmatrix})
-    \]
+    \] the most likely label is not spam.
+    }
     \newpage
     %
 
@@ -333,17 +337,22 @@
     One way to think of Laplace smoothing is that you're augmenting the training set with extra counts. Consider the estimates of the conditional probabilities in this dataset when we use Laplace smoothing (with $\beta = 1$).
     \ask{Give a set of extra training examples where, if they were included in the training set, the ``plain'' estimation method (with no Laplace smoothing) would give the same estimates of the conditional probabilities as using the original dataset with Laplace smoothing.}
     Present your answer in a reasonably easy-to-read format, for example the same format as the data set at the start of this question.
-    \ans{since $\beta = 1$, you would add two the following new examples to the original data set: }
+    \ans{since $\beta = 1$, you would add the the following new examples to the original data set: 
     \[
     X = \begin{bmatrix}
         1 & 1 & 1\\
-        1 & 1 & 1
+        0 & 0 & 0\\
+        1 & 1 & 1\\
+        0 & 0 & 0
     \end{bmatrix},
     \quad y = \begin{bmatrix}
         \text{spam}\\
+        \text{spam}\\
+        \text{not spam}\\
         \text{not spam}
     \end{bmatrix}.
     \]
+    }
     %
 
     \clearpage
@@ -453,11 +462,11 @@
         \item Using the same data as the previous section, fit Na\"ive Bayes models with \textbf{and} without Laplace smoothing to the training data. Use $\beta=1$ for Laplace smoothing. For each model, look at $p(x_{ij} = 1 \ | \ y_i = 0)$ across all $j$ values (i.e. all features) in both models. \ask{Do you notice any difference? Explain.}
         %
         
-        S\ans{ In the Na\"ive Bayes model, there were several instances where $p(x_{ij} = 1 \ | \ y_i = 0) = 0$. In the Na\"ive Bayes with laplace smoothing model, the instances were $p(x_{ij} = 1 \ | \ y_i = 0) = 0$ in the original model are non zero. }
+        \ans{ In the Na\"ive Bayes model, there were several instances where $p(x_{ij} = 1 \ | \ y_i = 0) = 0$. In the Na\"ive Bayes with Laplace-smoothing model, those instances where the probability is 0 in the original model, are now non-zero. This is because Laplace-smoothing adds extra examples to ensure that for all values of j, $p(x_{ij} = 1 \ | \ y_i = 0)$ will be non-zero. }
         
         \item One more time, fit a Na\"ive Bayes model with Laplace smoothing using $\beta=10000$. Look at $p(x_{ij} = 1 \ | \ y_i = 0)$. \ask{Do these numbers look like what you expect? Explain.}
         
-        \ans{ When $\beta=10000$, $p(x_{ij} = 1 \ | \ y_i = 0)$ is about approximate to each other for all features. The Laplace smoothing has made the dataset too smooth. This makes sense as $\beta=10000$ means to add 10000 samples where all the features are true for all class labels.}
+        \ans{ When $\beta=10000$, $p(x_{ij} = 1 \ | \ y_i = 0)$ is about approximate to each other for all features because all probabilities are summed with $\beta$ in the denominator and $\beta k$ in the denominator, which leads to $1/k = 0.25$, as $k=4$. The Laplace smoothing has made the dataset "too smooth" and pretty much uniform. This makes sense as $\beta=10000$ means to add 10000 samples where all the features are true for all class labels.}
         %
     \end{itemize}
 
@@ -513,12 +522,12 @@
     \begin{enumerate}
         \item Using the provided code, evaluate the \texttt{RandomTree} model of unlimited depth. \ask{Why doesn't the random tree model have a training error of 0?} \pts{2}
 
-        \ans{The Random Tree model has training error and does not over fit because at each stump, because the feature it fits on is from sub set of all the features in the data set. So it never chooses the optimal feature from all the features available to fit at every stump since it can only fit on a sub set of the features randomly chosen. }
+        \ans{The Random Tree model has a non-zero training error because the feature it fits on is from a subset of all the features in the data set (boostrapped)- not the original data set which the training error is based off of, and because the features chosen for each split is random from the subset as well. Therefore, it does not take into account the "most optimal splits" and does not use every single feature available to fit at every stump.}
         %
         
         \item For \texttt{RandomTree}, if you set the \texttt{max\_depth} value to \texttt{np.inf}, \ask{why do the training functions terminate instead of making an infinite number of splitting rules?} \pts{2}
 
-        \ans{It terminates eventually because the Random Tree fit method has a condition that if a \texttt{stump\_model} has a \texttt{j\_best == None}, it stops splitting for that leaf. The \texttt{j\_best} of a stump will equal \texttt{None} if a stump is given a data set that has only one example.}
+        \ans{It terminates eventually because the Random Tree fit method has a condition that if a \texttt{stump\_model} has a \texttt{j\_best == None}, it stops splitting for that leaf. The \texttt{j\_best} of a stump will equal \texttt{None} if a stump is given a data set that has only one example, or if there is no splitting done (i.e. do nothing, and it does not purify the subset of data further).}
         \newpage
         %
         
@@ -559,11 +568,11 @@
         
         \item Using 50 trees, and a max depth of $\infty$, \ask{report the training and testing error}. Compare this to what we got with a single \texttt{DecisionTree} and with a single \texttt{RandomTree}. \ask{Are the results what you expected? Discuss.} \pts{3}
         
-        \ans{\newline Training error: 0.000 \newline Testing error: 0.178 \newline The results are expect. Compared to the training and testing error of a Random Tree, which is 0.159 and 0.420 respectively, the Random Forest did much better. Following the concept of wisdom of the crowds, having many random trees and taking the majority predicted label of the forest, the Random Forest outperforms the Random Tree model.}
+        \ans{\newline Training error: 0.000 \newline Testing error: 0.178 \newline \newline The results are expected. Compared to the training and testing error of a Random Tree, which is 0.159 and 0.420 respectively, the Random Forest did much better. Compared to the Decision Tree errors of 0.000 and 0.367 respectively, the Random Forest also had a training error of 0.000 but without overfitting, and did better in the testing error. Following the concept of wisdom of the crowds, and by using ensemble methods to prevent overfitting, having many random trees and taking the majority predicted label of the forest, the Random Forest outperforms the Random Tree model.}
         %
         \item \ask{Why does a random forest typically have a training error of 0, even though random trees typically have a training error greater than 0?} \pts{3}
 
-        \ans{ a forest will fit the data perfectly, by averaging the predictions of each random tree. This results in the whole forest fitting the data perfectly and is not over fitting since it is not possible to over fit the data on the individual random trees. Using this method you achieve wisdom of the crowds.}
+        \ans{A forest will fit the data almost perfectly, by averaging the predictions of each random tree and correct any mistakes of individual trees. The forest is also not overfitting since it is not possible to overfit the data on the individual random trees with bootstrap data. Using this ensemble method you achieve wisdom of the crowds.}
         %
     \end{enumerate}
 
@@ -643,11 +652,11 @@
 
     \begin{enumerate}
         \item \ask{Explain why we should not choose $k$ by taking the value that minimizes the \texttt{error} value.} \pts{2}
-        \ans{The error goes to zero as k goes to infinity. As k increases, the model will label each example in data set as something}
+        \ans{We should not choose k by taking the value that minimizes the error value because minimum error values are often impacted by luck and is a coincidence when the number of running k-means to find this minimum value is very high. This is a classic case of optimization bias, which is when we get “lucky” with choosing a value that performs well by chance. This value is also very sensitive to initialization randomization, not necessarily the value of k.}
         %
         \item \ask{Is evaluating the \texttt{error} function on validation (or test data) a suitable approach to choosing $k$?} \pts{2}
         
-        \ans{Yes, but you cannot look to minimize the test error. You would have to employ the elbow method when evaulating the error function to select the best $k$.}
+        \ans{No, never evaluate anything using test data as that violates the golden rule, and the optimization bias from the previous answer still stands when choosing k from repeatedly testing the model against any data set. Furthermore, the “error” of a K-Means, an unsupervised learning model, does not always reflect the accuracy or correctness of the model in the real world. In our function, the error is the distances within the cluster, and minimizing this value does not necessarily mean they are supposed to be within one cluster. Alternatively, use the elbow method or silhouette method to determine k.}
         
         \item \ask{Hand in a plot of the minimum error found across 50 random initializations, as a function of $k$, taking $k$ from $1$ to $10$.} \pts{2}
         \ans{}
@@ -655,7 +664,7 @@
         %
         \item The \emph{elbow method} for choosing $k$ consists of looking at the above plot and visually trying to choose the $k$ that makes the sharpest ``elbow" (the biggest change in slope). \ask{What values of $k$ might be reasonable according to this method?} Note: there is not a single correct answer here; it is somewhat open to interpretation and there is a range of reasonable answers. \pts{2}
         
-        \ans{The pointiest part of the graph above occurs at k = 3. Another reasonable value is k = 4 because it is the first k value where the minimum error begins to level off.}
+        \ans{The pointiest part of the graph above occurs at k = 3. Another reasonable value is k = 4 because it is the first k value where the minimum error begins to level off in the plateau region.}
         %
     \end{enumerate}
 
@@ -667,23 +676,23 @@
     \begin{enumerate}
         \item What is a reason that the the data may not be IID in the email spam filtering example from lecture?
 
-        \ans{One reason that the data may not be IID in the email spam filtering example is that some feature require context or in other words the presence of a feature may be dependent on the presence/absence of another feature.}
+        \ans{One reason that the data may not be IID in the email spam filtering example is that some features are not independent because they are related in the context of the email. This results in the case that the presence of a feature may be dependent on the presence of another feature.}
         %
         
         \item Why can't we (typically) use the training error to select a hyper-parameter?
 
-        \ans{Training error is not a good gauge for true error as it does not consider test error. Using training error for selecting a hyper-parameter can lead to the model being over fit (e.g. you select a specific hyper-parameter value because is gave a training error of zero). }
+        \ans{Training error is not a good gauge for true error as it is prone to over-fitting when used to select a hyper-parameter (e.g. you select a specific hyper-parameter value because is gave a training error of zero due to coincidence of running 10000 iterations).}
         
         %
 
         \item What is the effect of the training or validation set size $n$ on the optimization bias, assuming we use a parametric model?
 
-        \ans{ As $n$ increases, the data set becomes more representative of the population, and when it is used to fit and train a parametric model. This will decrease the optimization bias resulting in an accurate model that is less likely to be over fit or under fit.}
+        \ans{ As $n$ increases, the data set becomes more representative of the population, and when it is used to fit and train a parametric model, will decrease the optimization bias resulting in an accurate model that is less likely to be overfit or underfit. However, there is an upper-limit for the benefits as $n$ increases - the training error does not decrease further past a plateau point.}
         %
 
         \item What is an advantage and a disadvantage of using a large $k$ value in $k$-fold cross-validation?
 
-        \ans{ \newline The advantage of using a large $k$ in $k$-fold cross-validation will result in more accuracte model performance metrics as metrics will be calculated and averages $k$ times. \newline \newline The disadvantage of using a large $k$ in $k$-fold cross-validation is that training the model will become more computationally intense since you will be essentially training/testing the model $k$ times. }
+        \ans{ \newline The advantage of using a large $k$ in $k$-fold cross-validation will result in more accurate model performance metrics as metrics will be calculated and averaged $k$ times. \newline \newline The disadvantage of using a large $k$ in $k$-fold cross-validation is that training the model will become more computationally intense since you will be essentially training/testing the model $k$ times. }
         %
 
         \item Recall that false positive in binary classification means $\hat y_i=1$ while $\tilde y_i = 0$. Give an example of when increasing false positives is an acceptable risk.
@@ -693,7 +702,7 @@
 
         \item Why can we ignore $p(x_i)$ when we use naive Bayes?
 
-        \ans{$p(x_i)$ is not required in calculating $p(y_i|x_i)$. The needed probabilities are $p(y_i)$ and $p(x_ij|y_i)$ for all values of $j$ in the feature set.}
+        \ans{Since $p(x_i)$ is the denominator of both sides of the inequality, it is a constant factor which does not affect the relative probability of each class compared to one another. When the denominator is cancelled (i.e. ignored), the inequality is still mathematically correct.}
         \newpage
         %
 
@@ -710,12 +719,12 @@
 
         \item Both supervised learning and clustering models take in an input $x_i$ and produce a label $y_i$. What is the key difference between these types of models?
 
-        \ans{The key difference between supervised learning and clustering is that in supervised learning, the model is trained by using a labeled data set and predicts the label of test examples using the information it learnt. Meanwhile, clustering the model is trained on a unlabeled data set, the model has to determine the labels to give.}
+        \ans{The key difference between supervised learning and clustering is that in supervised learning, the model is trained by using a labeled data set and predicts the label of test examples using the information it learned, with the same labels that were given in the data set. Meanwhile, clustering the model is trained on a unlabeled data set, the model has to determine the grouping of the data into clusters, without any predefined labels.}
         %
 
         \item In $k$-means clustering the clusters are guaranteed to be convex regions. Are the areas that are given the same label by kNN also convex?
 
-        \ans{No, the areas in kNN can be non-convex, this can be seen if the value if $k$ is small when defining a kNN model.}
+        \ans{No, unlike k-means where it results in convex regions by design, the areas in kNN can be non-convex, this can be seen if the value if $k$ is small when defining a kNN model.}
         %
     \end{enumerate}
 

@@ -77,26 +77,26 @@ def q2():
         mask = np.zeros(len(y), dtype=bool)
         for i in range(number_of_test_examples):
             mask[i] = True
-        X_test = X[mask]
-        y_test = y[mask]
+        X_cv = X[mask]
+        y_cv = y[mask]
         X_train = X[~mask]
         y_train = y[~mask]
-        return X_train, y_train, X_test, y_test
+        return X_train, y_train, X_cv, y_cv
 
     def crossValidateKNN(X, y, k):
         accuracies = []
         #error = []
         for i in range(10):
             model = KNN(k)
-            X_train, y_train, X_test, y_test = splitDataSet(X, y)
+            X_train, y_train, X_cv, y_cv = splitDataSet(X, y)
             model.fit(X_train, y_train)
-            y_hat = model.predict(X_test)
-            accuracies.append(np.mean(y_hat == y_test))
+            y_hat = model.predict(X_cv)
+            accuracies.append(np.mean(y_hat == y_cv))
             
             #y_hat = model.predict(X_train)
             #error.append(np.mean(y_hat != y_train))
-            X = np.concatenate([X_train, X_test], axis=0)
-            y = np.concatenate([y_train, y_test], axis=0)
+            X = np.concatenate([X_train, X_cv], axis=0)
+            y = np.concatenate([y_train, y_cv], axis=0)
         return np.mean(accuracies) #, np.mean(error)
     
     cv_accs = []
@@ -405,10 +405,6 @@ def q5_2():
     fname = Path("..", "figs", "kmeans minimum error vs k.png")
     plt.savefig(fname)
     print(f"Figure saved as {fname}")
-
-                
-    
-    raise NotImplementedError()
 
 
 

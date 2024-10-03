@@ -84,7 +84,7 @@ class NaiveBayesLaplace(NaiveBayes):
         for c in range(k):
             indicies_c = np.array(y == c) # basically an array that is length of y but has 1 where the element equals c and zero otherwise
             X_c = X[indicies_c] # a matrix where all the examples are the examples where the label equals c
-            p_xy[:, c] = (np.sum(X_c, axis=0) + self.beta) / (len(indicies_c) + 2*self.beta)
+            p_xy[:, c] = (np.sum(X_c, axis=0) + self.beta) / (len(X_c) + 2*self.beta)
             # this mean is basically finding the mean of an entire column in x_c 
             # (hence axis = 0), so this returns an array of length d
             # the array is inserted into p_xy as a column at index c.
