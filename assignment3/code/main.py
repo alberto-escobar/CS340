@@ -45,7 +45,18 @@ def q2_1():
     y = data["y"].squeeze(1)
 
     """YOUR CODE FOR Q2.1"""
-    raise NotImplementedError()
+    v = np.ones(500)
+
+    # Set the last 100 data points to have a weight of 0.1
+    v[400:] = 0.1
+    model = WeightedLeastSquares()
+    model.fit(X, y, v)
+    print(model.w)
+
+    test_and_plot(
+        model, X, y, title="Weighted Least Squares", filename="weighted_least_squares_outliers.pdf"
+    )
+
 
 
 @handle("2.4")
