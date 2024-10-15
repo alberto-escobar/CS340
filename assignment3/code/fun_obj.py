@@ -84,5 +84,15 @@ class RobustRegressionLoss(FunObj):
         w = ensure_1d(w)
         y = ensure_1d(y)
 
-        """YOUR CODE HERE FOR Q2.3"""
-        raise NotImplementedError()
+        n, d = X.shape
+        f = 0
+        r = np.zeros(n)
+        for i in range(n):
+            residual = w.T@X[i,:] - y[i]
+            f += np.log(np.exp(residual) + np.exp(-residual))
+            r[i] = (np.exp(residual) - np.exp(-residual)) / (np.exp(residual) + np.exp(-residual))
+            
+        g = X.T@r
+        return f, g
+        
+        

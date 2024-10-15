@@ -27,7 +27,6 @@ def q2():
     data = load_dataset("outliersData.pkl")
     X = data["X"]
     y = data["y"].squeeze(1)
-
     # Fit least-squares estimator
     model = LeastSquares()
     model.fit(X, y)
@@ -88,8 +87,19 @@ def q2_4_1():
     y = data["y"].squeeze(1)
 
     """YOUR CODE HERE FOR Q2.4.1"""
-    # TODO: Finish RobustRegressionLoss in fun_obj.py.
-    raise NotImplementedError()
+    fun_obj = RobustRegressionLoss()
+    optimizer = GradientDescentLineSearch(max_evals=100, verbose=False)
+    model = LinearModel(fun_obj, optimizer)
+    model.fit(X, y)
+    print(model.w)
+
+    test_and_plot(
+        model,
+        X,
+        y,
+        title="Robust Regression with Gradient Descent",
+        filename="robust_regression_gd.pdf",
+    )
 
 
 @handle("2.4.2")
@@ -108,7 +118,17 @@ def q2_4_2():
     model = LinearModel(fun_obj, optimizer)
     model.fit(X, y)
     """YOUR CODE HERE FOR Q2.4.2"""
-    raise NotImplementedError()
+    optimizer = GradientDescentLineSearch(max_evals=100, verbose=False)
+    model2 = LinearModel(fun_obj, optimizer)
+    model2.fit(X, y)
+    plt.figure()
+    plt.title("Objective function with gradient descent iterations")
+    plt.ylabel("f")
+    plt.xlabel("Gradient descent iteration")
+    plt.plot(model.fs, label="Gradient descent")
+    plt.plot(model2.fs, label="Gradient descent with line search")
+    plt.legend()
+    plt.savefig("../figs/learning_curves_robust_regression.pdf")
 
 
 @handle("3")
