@@ -86,13 +86,13 @@ class RobustRegressionLoss(FunObj):
 
         n, d = X.shape
         f = 0
-        r = np.zeros(n)
+        partial_fg = np.zeros(n)
         for i in range(n):
             residual = w.T@X[i,:] - y[i]
             f += np.log(np.exp(residual) + np.exp(-residual))
-            r[i] = (np.exp(residual) - np.exp(-residual)) / (np.exp(residual) + np.exp(-residual))
+            partial_fg[i] = (np.exp(residual) - np.exp(-residual)) / (np.exp(residual) + np.exp(-residual))
             
-        g = X.T@r
+        g = X.T@partial_fg
         return f, g
         
         
