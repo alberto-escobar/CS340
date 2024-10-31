@@ -138,7 +138,15 @@ class LinearClassifierForwardSel(LinearClassifier):
                 # TODO: Fit the model with 'j' added to the features,
                 # then compute the loss and update the min_loss/best_feature.
                 # Also update self.total_evals.
-                pass
+                w = np.zeros(np.sum(selected_with_j))
+                w, fs, gs, ws = self.optimize(w, X[:, selected_with_j], y)
+                # not sure weather to use self.global_loss_fn or self.loss_fn
+                loss, _ = self.global_loss_fn.evaluate(w, X[:, selected_with_j], y) 
+                if loss < min_loss:
+                    min_loss = loss
+                    best_feature = j
+                self.total_evals += 1
+                
 
             if min_loss < old_loss:  # something in the loop helped our model
                 selected[best_feature] = True

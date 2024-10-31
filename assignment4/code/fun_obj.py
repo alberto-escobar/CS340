@@ -124,7 +124,15 @@ class LogisticRegressionLossL2(LogisticRegressionLoss):
         y = ensure_1d(y)
 
         """YOUR CODE HERE FOR Q2.1"""
-        pass
+        Xw = X @ w
+        yXw = y * Xw
+
+        f = np.sum(np.log(1 + np.exp(-yXw))) + self.lammy*np.sum(w ** 2)/2
+
+        s = -y / (1 + np.exp(yXw))
+        g = X.T @ s + self.lammy*w
+
+        return f, g
 
 
 class LogisticRegressionLossL0(FunObj):

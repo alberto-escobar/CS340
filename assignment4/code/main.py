@@ -71,7 +71,21 @@ def q2_2():
     X_valid, y_valid = data["Xvalid"], data["yvalid"]
 
     """YOUR CODE HERE FOR Q2.2"""
-    pass
+    lammys = [0.01, 0.1, 1, 10]
+    for lammy in lammys:
+        fun_obj = LogisticRegressionLoss()
+        optimizer = GradientDescentLineSearchProxL1(lammy, max_evals=400, verbose=False)
+        model = linear_models.LinearClassifier(fun_obj, optimizer)
+        model.fit(X, y)
+        print(f"Lambda: {lammy}")
+        train_err = classification_error(model.predict(X), y)
+        print(f"Linear Training error: {train_err:.3f}")
+
+        val_err = classification_error(model.predict(X_valid), y_valid)
+        print(f"Linear Validation error: {val_err:.3f}")
+
+        print(f"# nonZeros: {np.sum(model.w != 0)}")
+        print(f"# function evals: {optimizer.num_evals}")
 
 
 @handle("2.3")
