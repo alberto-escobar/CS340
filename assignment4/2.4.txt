@@ -1,0 +1,12 @@
+in question 2, different norms were tested for logisitical regression. below is a ranking of the best to work validation error:
+
+L0
+L1
+L2
+No regularization
+
+The trend here that is improving the validation error is the degree of sparsity. L0 essentially optimizes the features that make the best predictions
+L2 and no regularization do not introduce any parsity. Having a model that helps opitmize features reduces model complexity and therefor improve
+valdiation error. However any issue with L0 is that the time performance is horrible. Namely it takes a long time to test each possible combination of
+features.
+
