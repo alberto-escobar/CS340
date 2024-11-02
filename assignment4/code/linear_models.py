@@ -210,7 +210,12 @@ class LinearClassifierOneVsAll(LinearClassifier):
         """YOUR CODE HERE FOR Q3.2"""
         # NOTE: make sure that you use {-1, 1} labels y for logistic regression,
         #       not {0, 1} or anything else.
-        pass
+        print(y)
+        for c in y_classes:
+            y_c = np.where(c == y, 1, -1)
+            w_c = np.zeros(d)
+            w_c, _, _, _ = self.optimize(w_c, X, y_c)
+            W[c, :] = w_c
 
         self.W = W
 
