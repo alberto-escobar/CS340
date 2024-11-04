@@ -210,7 +210,6 @@ class LinearClassifierOneVsAll(LinearClassifier):
         """YOUR CODE HERE FOR Q3.2"""
         # NOTE: make sure that you use {-1, 1} labels y for logistic regression,
         #       not {0, 1} or anything else.
-        print(y)
         for c in y_classes:
             y_c = np.where(c == y, 1, -1)
             w_c = np.zeros(d)
@@ -233,28 +232,13 @@ class MulticlassLinearClassifier(LinearClassifier):
     def fit(self, X, y):
         """YOUR CODE HERE FOR Q3.4"""
         n, d = X.shape
-        y_classes = np.unique(y)
-        k = len(y_classes)
-        assert set(y_classes) == set(range(k))  # check labels are {0, 1, ..., k-1}
-
-        # quick check that loss_fn is implemented correctly
-        self.loss_fn.check_correctness(np.zeros(d), X, (y == 1).astype(np.float32))
-
-        # Initial guesses for weights
-        W = np.zeros([k, d])
-
-        """YOUR CODE HERE FOR Q3.2"""
-        # NOTE: make sure that you use {-1, 1} labels y for logistic regression,
-        #       not {0, 1} or anything else.
-        n, d = X.shape
         k = len(np.unique(y))
-        w_init = np.zeros(k*d)
+        w_inital = np.zeros(k*d)
 
-
-        w, fs, gs, ws = self.optimize(w_init, X, y)
+        w, fs, gs, ws = self.optimize(w_inital, X, y)
         W = w.reshape([k, d])
         self.W = W
 
     def predict(self, X_hat):
         """YOUR CODE HERE FOR Q3.4"""
-        return np.argmax(X @ self.W.T, axis=1)
+        return np.argmax(X_hat @ self.W.T, axis=1)

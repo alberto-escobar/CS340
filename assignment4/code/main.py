@@ -177,6 +177,22 @@ def q3_5():
     X_valid, y_valid = data["Xvalid"], data["yvalid"]
 
     """YOUR CODE HERE FOR Q3.5"""
+    skl_one_vs_all = LogisticRegression(fit_intercept=False, multi_class='ovr', max_iter=500)
+    skl_softmax = LogisticRegression(fit_intercept=False, multi_class='multinomial', max_iter=1000)
+    skl_one_vs_all.fit(X,y)
+    skl_softmax.fit(X,y)
+
+    one_vs_all_train_err = classification_error(skl_one_vs_all.predict(X), y)
+    one_vs_all_val_err = classification_error(skl_one_vs_all.predict(X_valid), y_valid)
+    softmax_train_err = classification_error(skl_softmax.predict(X_valid), y)
+    softmax_val_err = classification_error(skl_softmax.predict(X_valid), y_valid)
+
+    print(f"SKL One-vs-All training 0-1 error: {one_vs_all_train_err:.3f}")
+    print(f"SKL One-vs-All validation 0-1 error: {one_vs_all_val_err:.3f}")
+    print(f"model predicted classes: {np.unique(skl_one_vs_all.predict(X))}")
+    print(f"SKL SoftmaxLoss validation 0-1 error: {softmax_train_err:.3f}")
+    print(f"SKL SoftmaxLoss validation 0-1 error: {softmax_val_err:.3f}")
+    print(f"model predicted classes: {np.unique(skl_softmax.predict(X))}")
     pass
 
 

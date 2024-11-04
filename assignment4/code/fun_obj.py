@@ -168,30 +168,29 @@ class SoftmaxLoss(FunObj):
         """YOUR CODE HERE FOR Q3.4"""
         # Hint: you may want to use NumPy's reshape() or flatten()
         # to be consistent with our matrix notation.
-        print(X)
         W = np.reshape(w, (k, d))
-        XW = X @ W.T
-        exp_XW = np.exp(XW)
-        sum_exp_XW = np.sum(exp_XW, axis=1)
-        log_sum_exp_XW = np.log(sum_exp_XW)
-        f_right = np.sum(log_sum_exp_XW)
-        f_left = 0
+        XWT = X @ W.T
+        exp_XWT = np.exp(XWT)
+        sum_exp_XWT = np.sum(exp_XWT, axis=1)
+        log_sum_exp_XWT = np.log(sum_exp_XWT)
+        f_right_term = np.sum(log_sum_exp_XWT)
+        f_left_term = 0
         
         for i in range(n):
-            f_left -= np.dot(W[y[i]],X[i])
+            f_left_term -= np.dot(W[y[i]],X[i])
         
-        f = f_left + f_right
+        f = f_left_term + f_right_term
 
-        p = np.zeros([k, n])
+        prob_c_given_XWT = np.zeros([k, n])
         for c in range(k):
             for i in range(n):
-                p[c, i] = exp_XW[i, c] / sum_exp_XW[i]
+                prob_c_given_XWT[c, i] = exp_XWT[i, c] / sum_exp_XWT[i]
         
-        G = np.zeros(k,d)
+        G = np.zeros((k,d))
         for c in range(k):
             for j in range(d):
-                left = X[:, j]
-                right = p[c, :] - (y == c)
-                G[c, j] = np.sum(left * right)
+                g_left_factor = X[:, j]
+                g_right_factor = prob_c_given_XWT[c, :] - (y == c)
+                G[c, j] = np.sum(g_left_factor * g_right_factor)
         g = G.reshape(-1)
         return f, g
