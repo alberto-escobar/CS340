@@ -34,7 +34,7 @@ class PolynomialKernel(Kernel):
         """
 
         """YOUR CODE HERE FOR Q1.1"""
-        pass
+        return (X1 @ X2.T + 1) ** self.p
 
 
 class GaussianRBFKernel(Kernel):
@@ -50,4 +50,6 @@ class GaussianRBFKernel(Kernel):
         """
 
         """YOUR CODE HERE FOR Q1.1"""
-        pass
+        X_distance = euclidean_dist_squared(X1, X2)
+        return np.exp(-X_distance/(2*self.sigma**2))
+        
