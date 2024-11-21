@@ -120,12 +120,12 @@ def q1_2():
 
     """YOUR CODE HERE FOR Q1.2"""
     best_train_error = float('inf')
-    best_train_error_i = None
-    best_train_error_j = None
+    best_train_error_sigma = None
+    best_train_error_lammy = None
     
     best_val_error = float('inf')
-    best_val_error_i = None
-    best_val_error_j = None
+    best_val_error_sigma = None
+    best_val_error_lammy = None
     for i in range(len(sigmas)):
         for j in range(len(lammys)):
                 sigma = sigmas[i]
@@ -139,20 +139,36 @@ def q1_2():
                 val_error = np.mean(klr_model.predict(X_val) != y_val)
                 if (train_error < best_train_error):
                     best_train_error = train_error
-                    best_train_error_i = i
-                    best_train_error_j = j
+                    best_train_error_sigma = sigmas[i]
+                    best_train_error_lammy = lammys[j]
                 
                 if (val_error < best_val_error):
                     best_val_error = val_error
-                    best_val_error_i = i
-                    best_val_error_j = j
+                    best_val_error_sigma = sigmas[i]
+                    best_val_error_lammy = lammys[j]
 
                 train_errs[i][j] = train_error
                 val_errs[i][j] = val_error
 
-    print(f"Best Training error {best_train_error:.1%} occurs with sigma = {best_train_error_i:.6f} and lambda = {best_train_error_j:.4f}")
+    print(f"Best Training error {best_train_error:.1%} occurs with sigma = {best_train_error_sigma:.6f} and lambda = {best_train_error_lammy:.4f}")
+    
+    loss_fn = KernelLogisticRegressionLossL2(best_train_error_lammy)
+    optimizer = GradientDescentLineSearch()
+    kernel = GaussianRBFKernel(best_train_error_sigma)
+    klr_model = KernelClassifier(loss_fn, optimizer, kernel)
+    klr_model.fit(X_train, y_train)
+    fig = plot_classifier(klr_model, X_train, y_train)
+    savefig("logRegGaussianRBFBestTrainError.png", fig)
 
-    print(f"Best Validation error {best_val_error:.1%} occurs with sigma = {best_val_error_i:.6f} and lambda = {best_val_error_j:.4f}")
+    print(f"Best Validation error {best_val_error:.1%} occurs with sigma = {best_val_error_sigma:.6f} and lambda = {best_val_error_lammy:.4f}")
+    
+    loss_fn = KernelLogisticRegressionLossL2(best_val_error_lammy)
+    optimizer = GradientDescentLineSearch()
+    kernel = GaussianRBFKernel(best_val_error_sigma)
+    klr_model = KernelClassifier(loss_fn, optimizer, kernel)
+    klr_model.fit(X_train, y_train)
+    fig = plot_classifier(klr_model, X_train, y_train)
+    savefig("logRegGaussianRBFBestValError.png", fig)
 
     # Make a picture with the two error arrays. No need to worry about details here.
     fig, axes = plt.subplots(1, 2, figsize=(12, 5), constrained_layout=True)
