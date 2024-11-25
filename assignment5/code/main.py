@@ -219,7 +219,38 @@ def q3_2():
     plt.close(fig)
 
     """YOUR CODE HERE FOR Q3"""
-    pass
+    model = PCAEncoder(2)
+    model.fit(X_train)
+    W = model.W
+    Z = X_train @ W.T @ np.linalg.inv(W @ W.T)
+    print(Z)
+    fig, ax = plt.subplots()
+    ax.scatter(Z[:, 0], Z[:, 1])
+    for i in random_is:
+        ax.annotate(animal_names[i], xy=Z[i, :])
+    savefig("animals_answer.png", fig)
+    plt.close(fig)
+    trait1 = trait_names[np.argmax(np.abs(W[0,:]))]
+    trait2 = trait_names[np.argmax(np.abs(W[1,:]))]
+
+    print(trait1, trait2)
+
+    X_centered = X_train - model.mu
+    variance_explained = 1 - np.linalg.norm((Z@W - X_centered), ord='fro')**2 / np.linalg.norm((X_centered), ord='fro')**2
+    print("Variance explained: {:.3f}".format(variance_explained))
+
+    for k in range(1,100):
+        model = PCAEncoder(k)
+        model.fit(X_train)
+        W = model.W
+        Z = X_train @ W.T @ np.linalg.inv(W @ W.T)
+        X_centered = X_train - model.mu
+        variance_explained = 1 - np.linalg.norm((Z@W - X_centered), ord='fro')**2 / np.linalg.norm((X_centered), ord='fro')**2
+        if variance_explained > 0.5:
+            print("at k = {:d} the variance explained = {:.3f}".format(k, variance_explained))
+            break
+
+
 
 
 @handle("4")
@@ -253,7 +284,18 @@ def q4_1():
     X_val, _, _ = standardize_cols(X_val_orig, mu, sigma)
 
     """YOUR CODE HERE FOR Q4.1"""
-    pass
+    batch_sizes = [1,10,100]
+   
+    for batch_size in batch_sizes:
+        loss_function = LeastSquaresLoss()
+        base_optimizer = GradientDescent()
+        learning_rate_getter = ConstantLR(0.0003)
+        optimizer = StochasticGradient(base_optimizer, learning_rate_getter, batch_size, max_evals=10)
+        model = LinearModel(loss_function, optimizer, check_correctness=False)
+        model.fit(X_train, y_train)
+        train_err = ((model.predict(X_train) - y_train) ** 2).mean()
+        val_err = ((model.predict(X_val) - y_val) ** 2).mean()
+        print("Batch size: {:d}\tTraining error: {:.3f}\tValidation error: {:.3f}".format(batch_size, train_err, val_err))
 
 
 @handle("4.3")
@@ -263,7 +305,34 @@ def q4_3():
     X_val, _, _ = standardize_cols(X_val_orig, mu, sigma)
 
     """YOUR CODE HERE FOR Q4.3"""
-    pass
+    c = 0.1
+    learning_rate_getters = [
+            ConstantLR(c),
+            InverseLR(c),
+            InverseSquaredLR(c),
+            InverseSqrtLR(c)
+    ]
+    plot_labels = [
+        "constant",
+        "inverse",
+        "inverse_squared",
+        "inverse_sqrt"
+    ]
+    plt.figure()
+    for i in range(len(learning_rate_getters)):
+        loss_function = LeastSquaresLoss()
+        base_optimizer = GradientDescent()
+        optimizer = StochasticGradient(base_optimizer, learning_rate_getters[i], 10, max_evals=50)
+        model = LinearModel(loss_function, optimizer)
+        model.fit(X_train, y_train)
+        err_train = np.mean((model.predict(X_train) - y_train) ** 2)
+        err_valid = np.mean((model.predict(X_val) - y_val) ** 2)
+        plt.plot(model.fs, label=plot_labels[i])
+    
+    plt.legend()
+    plt.xlabel("Epochs")
+    plt.ylabel("Objective function f value")
+    savefig("learning_curves", plt)
 
 
 if __name__ == "__main__":
