@@ -110,7 +110,7 @@ def q1_3():
     n, d = X_train.shape
     h, w = 64, 64  # height and width of each image
     k = 5  # number of PCs
-    threshold = 0.1  # threshold for being considered "foreground"
+    threshold = 0.01  # threshold for being considered "foreground"
 
     # PCA with SVD
     model = PCAEncoder(k)
