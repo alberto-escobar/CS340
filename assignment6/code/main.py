@@ -160,7 +160,6 @@ def q1_3():
 def q2():
     ratings = pd.read_csv("../data/ml-latest-small/ratings.csv")
     movies = pd.read_csv("../data/ml-latest-small/movies.csv", index_col=0)
-
     print("Sample of the ratings dataframe:")
     print(ratings.head())
     print("\nSample of the movies dataframe:")
@@ -174,7 +173,6 @@ def q2():
     print("Number of ratings:", len(ratings))
 
     Y_train, Y_valid = create_rating_matrix(ratings, n, d, "userId", "movieId")
-
     # get the average rating in Y_train
     print("The average rating in the training set: %.2f" % np.nanmean(Y_train))
     # equivalent to the previous line, but implemented differently
@@ -197,8 +195,8 @@ def q2_1():
     print("Number of ratings:", len(ratings))
 
     Y_train, Y_valid = create_rating_matrix(ratings, n, d, "userId", "movieId")
-
-    raise NotImplementedError()
+    print(f"Number of non-nan ratings are there for Y_train: {np.count_nonzero(~np.isnan(Y_train))}")
+    print(f"Number of non-nan ratings are there for Y_train: {np.count_nonzero(~np.isnan(Y_valid))}")
 
 @handle("2.2")
 def q2_2():
@@ -270,35 +268,50 @@ def q2_3():
 
     avg_rating = np.nanmean(Y_train)
 
-    k = 50
-    fun_obj_w = CollaborativeFilteringWLoss(lammyZ=1, lammyW=1)
-    fun_obj_z = CollaborativeFilteringZLoss(lammyZ=1, lammyW=1)
+    best_k = 50
+    best_lambda_Z = 1
+    best_lambda_W = 1
+    best_validation_error = float('inf')
+    for k in range(50, 200, 10):
+        for lambda_Z in range(10):
+            for lambda_W in range(10):
 
-    optimizer_w = GradientDescentLineSearch(max_evals=100, verbose=False)
-    optimizer_z = GradientDescentLineSearch(max_evals=100, verbose=False)
-    model = LinearEncoderGradient(
-        k, fun_obj_w, fun_obj_z, optimizer_w, optimizer_z, centering="all"
-    )
-    # centering="all" means take the mean over all non-NaN elements of Y,
-    # not the mean per each column
-    model.fit(Y_train)
+                fun_obj_w = CollaborativeFilteringWLoss(lammyZ=lambda_Z, lammyW=lambda_W)
+                fun_obj_z = CollaborativeFilteringZLoss(lammyZ=lambda_Z, lammyW=lambda_W)
 
-    Y_hat = model.Z @ model.W + model.mu
+                optimizer_w = GradientDescentLineSearch(max_evals=3, verbose=False)
+                optimizer_z = GradientDescentLineSearch(max_evals=3, verbose=False)
+                model = LinearEncoderGradient(
+                    k, fun_obj_w, fun_obj_z, optimizer_w, optimizer_z, centering="all"
+                )
+                # centering="all" means take the mean over all non-NaN elements of Y,
+                # not the mean per each column
+                model.fit(Y_train)
 
-    print(
-        "Train RMSE if you just guess the average: %.2f"
-        % np.sqrt(np.nanmean((avg_rating - Y_train) ** 2))
-    )
-    print(
-        "Valid RMSE if you just guess the average: %.2f"
-        % np.sqrt(np.nanmean((avg_rating - Y_valid) ** 2))
-    )
+                Y_hat = model.Z @ model.W + model.mu
 
-    RMSE_train = np.sqrt(np.nanmean((Y_hat - Y_train) ** 2))
-    print("Train RMSE of ratings: %.2f" % RMSE_train)
+                print(
+                    "Train RMSE if you just guess the average: %.2f"
+                    % np.sqrt(np.nanmean((avg_rating - Y_train) ** 2))
+                )
+                print(
+                    "Valid RMSE if you just guess the average: %.2f"
+                    % np.sqrt(np.nanmean((avg_rating - Y_valid) ** 2))
+                )
 
-    RMSE_valid = np.sqrt(np.nanmean((Y_hat - Y_valid) ** 2))
-    print("Valid RMSE of ratings: %.2f" % RMSE_valid)
+                RMSE_train = np.sqrt(np.nanmean((Y_hat - Y_train) ** 2))
+                print("Train RMSE of ratings: %.2f" % RMSE_train)
+
+                RMSE_valid = np.sqrt(np.nanmean((Y_hat - Y_valid) ** 2))
+                print("Valid RMSE of ratings: %.2f" % RMSE_valid)
+
+                if (RMSE_valid < best_validation_error):
+                        best_validation_error = RMSE_valid
+                        best_k = k
+                        best_lambda_Z = lambda_Z
+                        best_lambda_W = lambda_W
+    print(f"best k: {best_k}\nbest lambda_Z: {best_lambda_Z}\nbest lambda_W: {best_lambda_W}\n")
+    print(f"validation RMSE: {best_validation_error}")
 
     # print("Max abs of W:", np.max(np.abs(model.W)))
     # print("Max abs of Z:", np.max(np.abs(model.Z)))

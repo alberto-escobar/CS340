@@ -331,7 +331,15 @@ class CollaborativeFilteringZLoss(FunObj):
         self.lammyW = lammyW
 
     def evaluate(self, z, W, Y):
-        pass
+        n, d = Y.shape
+        k, _ = W.shape
+        Z = z.reshape(n, k)
+
+        R = Z @ W - Y
+        R[np.isnan(Y)] = 0
+        f = np.sum(R ** 2) + self.lammyZ * np.sum(Z**2)/2 + self.lammyW * np.sum(W**2)/2
+        G = 2 * R @ W.T + self.lammyZ * Z
+        return f, G.flatten()
 
 
 class CollaborativeFilteringWLoss(FunObj):
@@ -340,7 +348,16 @@ class CollaborativeFilteringWLoss(FunObj):
         self.lammyW = lammyW
 
     def evaluate(self, w, Z, Y):
-        pass
+        n, d = Y.shape
+        _, k = Z.shape
+        W = w.reshape(k, d)
+
+        R = Z @ W - Y
+        R[np.isnan(Y)] = 0
+        f = np.sum(R ** 2) + self.lammyZ * np.sum(Z**2)/2 + self.lammyW * np.sum(W**2)/2
+        
+        G = 2 * Z.T @ R + self.lammyW * W
+        return f, G.flatten()
 
 
 class RobustPCAFeaturesLoss(FunObj):
