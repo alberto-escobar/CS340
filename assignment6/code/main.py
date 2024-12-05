@@ -22,7 +22,7 @@ from encoders import (
     NonLinearEncoderMultiLayer,
 )
 from linear_models import LinearModelMultiOutput, MulticlassLinearClassifier
-from learning_rate_getters import ConstantLR
+from learning_rate_getters import (ConstantLR, InverseSqrtLR)
 from fun_obj import (
     MLPLogisticRegressionLossL2,
     PCAFactorsLoss,
@@ -215,8 +215,8 @@ def q2_2():
     k = 50
     # Below: you need to use the same lammyZ in both cases, and the same lammyW in both cases
     # TODO next year: improve this code
-    fun_obj_w = CollaborativeFilteringWLoss(lammyZ=1, lammyW=1)
-    fun_obj_z = CollaborativeFilteringZLoss(lammyZ=1, lammyW=1)
+    fun_obj_w = CollaborativeFilteringWLoss(lammyZ=1, lammyW=0)
+    fun_obj_z = CollaborativeFilteringZLoss(lammyZ=1, lammyW=0)
 
     # smaller version for checking the gradient, otherwise it's slow
     k_check = 3
@@ -244,7 +244,6 @@ def q2_2():
     # centering="all" means take the mean over all non-NaN elements of Y,
     # not the mean per each column
     model.fit(Y_train)
-
     Y_hat = model.Z @ model.W + model.mu
 
     RMSE_train = np.sqrt(np.nanmean((Y_hat - Y_train) ** 2))
@@ -286,6 +285,7 @@ def q2_3():
                 )
                 # centering="all" means take the mean over all non-NaN elements of Y,
                 # not the mean per each column
+                
                 model.fit(Y_train)
 
                 Y_hat = model.Z @ model.W + model.mu
@@ -374,62 +374,73 @@ def q3():
 
 @handle("3.2")
 def q3_2():
-    with gzip.open(Path("..", "data", "mnist.pkl.gz"), "rb") as f:
-        train_set, valid_set, test_set = pickle.load(f, encoding="latin1")
+    train_errors = []
+    valid_errors = []
+    for i in range(10):
+        with gzip.open(Path("..", "data", "mnist.pkl.gz"), "rb") as f:
+            train_set, valid_set, test_set = pickle.load(f, encoding="latin1")
 
-    # Use these y-values for softmax classifier
-    X_train, y_train = train_set
-    X_valid, y_valid = valid_set
+        # Use these y-values for softmax classifier
+        X_train, y_train = train_set
+        X_valid, y_valid = valid_set
+        
+        # standardize data
+        X_train, mu, sigma = standardize_cols(X_train) #NEW
+        X_valid, _, _ = standardize_cols(X_valid, mu, sigma) #NEW
+        
+        # Use these for training our MLP classifier
+        binarizer = LabelBinarizer()
+        Y_train = binarizer.fit_transform(y_train)
 
-    # Use these for training our MLP classifier
-    binarizer = LabelBinarizer()
-    Y_train = binarizer.fit_transform(y_train)
+        n, d = X_train.shape
+        _, k = Y_train.shape  # k is the number of classes
 
-    n, d = X_train.shape
-    _, k = Y_train.shape  # k is the number of classes
+        # Assemble a neural network
+        # put hidden layer dimensions to increase the number of layers in encoder
+        hidden_feature_dims = [50] #NEW
+        output_dim = 10 #NEW
 
+        # First, initialize an encoder and a predictor
+        layer_sizes = [d, *hidden_feature_dims, output_dim]
+        encoder = NonLinearEncoderMultiLayer(layer_sizes)
+        predictor = LinearModelMultiOutput(output_dim, k)
+
+        # Function object will associate the encoder and the predictor during training
+        fun_obj = MLPLogisticRegressionLossL2(encoder, predictor, 1.)
+
+        # Choose optimization strategy
+        child_optimizer = GradientDescent()
+        learning_rate_getter = InverseSqrtLR(1e-1) #NEW
+        # learning_rate_getter = LearningRateGetterInverseSqrt(1e0)
+        optimizer = StochasticGradient(
+            child_optimizer,
+            learning_rate_getter,
+            700, #NEW
+            max_evals=20 #NEW
+        )
+
+        # Assemble!
+        model = NeuralNet(fun_obj, optimizer, encoder, predictor, classifier_yes=True)
+
+        t = time.time()
+        model.fit(X_train, Y_train)
+        print("Fitting took {:f} seconds".format((time.time() - t)))
+
+        # Compute training error
+        y_hat = model.predict(X_train)
+        err_train = np.mean(y_hat != y_train)
+        print("Training error = ", err_train)
+
+        # Compute validation error
+        y_hat = model.predict(X_valid)
+        err_valid = np.mean(y_hat != y_valid)
+        print("Validation error     = ", err_valid)
+        train_errors.append(err_train)
+        valid_errors.append(err_valid)
     
+    print(f"Average training error: {np.average(train_errors)}")
+    print(f"Average validation error: {np.average(valid_errors)}")
 
-    # Assemble a neural network
-    # put hidden layer dimensions to increase the number of layers in encoder
-    hidden_feature_dims = []
-    output_dim = 2
-
-    # First, initialize an encoder and a predictor
-    layer_sizes = [d, *hidden_feature_dims, output_dim]
-    encoder = NonLinearEncoderMultiLayer(layer_sizes)
-    predictor = LinearModelMultiOutput(output_dim, k)
-
-    # Function object will associate the encoder and the predictor during training
-    fun_obj = MLPLogisticRegressionLossL2(encoder, predictor, 1.)
-
-    # Choose optimization strategy
-    child_optimizer = GradientDescent()
-    learning_rate_getter = ConstantLR(1e-2)
-    # learning_rate_getter = LearningRateGetterInverseSqrt(1e0)
-    optimizer = StochasticGradient(
-        child_optimizer,
-        learning_rate_getter,
-        500,
-        max_evals=10
-    )
-
-    # Assemble!
-    model = NeuralNet(fun_obj, optimizer, encoder, predictor, classifier_yes=True)
-
-    t = time.time()
-    model.fit(X_train, Y_train)
-    print("Fitting took {:f} seconds".format((time.time() - t)))
-
-    # Compute training error
-    y_hat = model.predict(X_train)
-    err_train = np.mean(y_hat != y_train)
-    print("Training error = ", err_train)
-
-    # Compute validation error
-    y_hat = model.predict(X_valid)
-    err_valid = np.mean(y_hat != y_valid)
-    print("Validation error     = ", err_valid)
 
 
 @handle("3.3")
