@@ -179,6 +179,7 @@ class LinearEncoderGradient(LinearEncoder):
                 f"Iteration {gd_iteration + 1}\t "
                 f"f_w: {f_w:.1f}\t f_z: {f_z:.1f}\t "
             )
+            print(f"W_fro: {np.linalg.norm(W, 'fro')}\tZ_fro: {np.linalg.norm(Z, 'fro')}")
 
         # parse the parameters to get optimized W and Z
         W = w.reshape(k, d)

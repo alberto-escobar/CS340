@@ -329,7 +329,24 @@ def q2_4():
     Y_train, Y_valid = create_rating_matrix(ratings, n, d, "userId", "movieId")
     avg_rating = np.nanmean(Y_train)
 
-    raise NotImplementedError()
+    k = 150
+    fun_obj_w = CollaborativeFilteringWLoss(lammyZ=1, lammyW=0)
+    fun_obj_z = CollaborativeFilteringZLoss(lammyZ=1, lammyW=0)
+
+
+    optimizer_w = GradientDescentLineSearch(max_evals=100, verbose=False)
+    optimizer_z = GradientDescentLineSearch(max_evals=100, verbose=False)
+    model = LinearEncoderGradient(
+        k, fun_obj_w, fun_obj_z, optimizer_w, optimizer_z, centering="all")
+
+    model.fit(Y_train)
+    Y_hat = model.Z @ model.W + model.mu
+
+    RMSE_train = np.sqrt(np.nanmean((Y_hat - Y_train) ** 2))
+    print("Train RMSE of ratings: %.2f" % RMSE_train)
+
+    RMSE_valid = np.sqrt(np.nanmean((Y_hat - Y_valid) ** 2))
+    print("Valid RMSE of ratings: %.2f" % RMSE_valid)
 
 
 @handle("3")
@@ -385,8 +402,8 @@ def q3_2():
         X_valid, y_valid = valid_set
         
         # standardize data
-        X_train, mu, sigma = standardize_cols(X_train) #NEW
-        X_valid, _, _ = standardize_cols(X_valid, mu, sigma) #NEW
+        X_train, mu, sigma = standardize_cols(X_train) # Updated
+        X_valid, _, _ = standardize_cols(X_valid, mu, sigma) # Updated
         
         # Use these for training our MLP classifier
         binarizer = LabelBinarizer()
@@ -397,8 +414,8 @@ def q3_2():
 
         # Assemble a neural network
         # put hidden layer dimensions to increase the number of layers in encoder
-        hidden_feature_dims = [50] #NEW
-        output_dim = 10 #NEW
+        hidden_feature_dims = [50] # Updated
+        output_dim = 10 # Updated
 
         # First, initialize an encoder and a predictor
         layer_sizes = [d, *hidden_feature_dims, output_dim]
@@ -410,13 +427,13 @@ def q3_2():
 
         # Choose optimization strategy
         child_optimizer = GradientDescent()
-        learning_rate_getter = InverseSqrtLR(1e-1) #NEW
+        learning_rate_getter = InverseSqrtLR(1e-1) # Updated
         # learning_rate_getter = LearningRateGetterInverseSqrt(1e0)
         optimizer = StochasticGradient(
             child_optimizer,
             learning_rate_getter,
-            700, #NEW
-            max_evals=20 #NEW
+            700, # Updated
+            max_evals=20 # Updated
         )
 
         # Assemble!
