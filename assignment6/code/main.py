@@ -212,11 +212,11 @@ def q2_2():
     avg_rating = np.nanmean(Y_train)
 
     # PCA with alternating minimization
-    k = 50
+    k = 180
     # Below: you need to use the same lammyZ in both cases, and the same lammyW in both cases
     # TODO next year: improve this code
-    fun_obj_w = CollaborativeFilteringWLoss(lammyZ=1, lammyW=0)
-    fun_obj_z = CollaborativeFilteringZLoss(lammyZ=1, lammyW=0)
+    fun_obj_w = CollaborativeFilteringWLoss(lammyZ=9, lammyW=9)
+    fun_obj_z = CollaborativeFilteringZLoss(lammyZ=9, lammyW=9)
 
     # smaller version for checking the gradient, otherwise it's slow
     k_check = 3
@@ -271,7 +271,7 @@ def q2_3():
     best_lambda_Z = 1
     best_lambda_W = 1
     best_validation_error = float('inf')
-    for k in range(50, 200, 10):
+    for k in range(1, 50, 5):
         for lambda_Z in range(10):
             for lambda_W in range(10):
 

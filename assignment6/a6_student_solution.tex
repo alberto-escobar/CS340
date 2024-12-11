@@ -91,7 +91,7 @@ and it has recently been proposed as a more effective model for background subtr
 
 \ask{In a few sentences, explain why using a robust loss might help PCA perform better for this background subtraction application.} Some conversation-starters: what is an outlier here --- a car or the highway? What does it mean to be robust to outliers --- that we're good at reconstructing them or that we're back at reconstructing them?
 
-\ans{ Robust PCA is more capable in background subtraction compared to conventional PCA because it is less sensitive to outlier. In this problem, the highway is the constant since it appears in every frame of the video while cars are outliers since they only appear in a subset of frames int he video. If we use conventional PCA, which relies on squared loss, any outliers will be amplified. When cars appear in some frames, they cause large reconstruction errors that distort the principal components, leading to blurry reconstructions in regions where cars are present. However robust PCA uses absolute error which is more lenient on outliers. Cars in frames are treated as sparse anomalies, reducing their impact on the reconstruction. This leased to clearer background reconstructions with less blur in the areas where cars appear. }
+\ans{ Robust PCA is more capable in background subtraction compared to conventional PCA because it is less sensitive to outliers. In this problem, the highway is the constant since it appears in every frame of the video while cars are outliers since they only appear in a subset of frames int the video. If we use conventional PCA, which relies on squared loss, any outliers will be amplified. When cars appear in some frames, they cause large reconstruction errors that distort the principal components, leading to blurry reconstructions in regions where cars are present. However robust PCA uses L1-regularization which computes absolute error which is more lenient on outliers. Cars in frames are treated as sparse anomalies, reducing their impact on the reconstruction. This leads to clearer background reconstructions with less blur in the areas where cars appear. }
 \newpage
 \subsection{Robust PCA Approximation and Gradient \pts{5}}
 
@@ -148,12 +148,15 @@ And, similarly, the gradient with respect to $Z$ is given by:
 
 \ask{Show that the two parts of the gradient above, $\nabla_W f(Z,W)$ and $\nabla_Z f(Z,W)$, have the expected dimensions.}
 
-\ans{\newline 
-For $\nabla_W f(Z,W)$: $Z^T$ has dimensions k x n, $R$ has dimensions n x d, which makes $R \oslash \left(R^{\circ 2} + \epsilon\right)^{\circ \frac12}$ also have dimension n x d. So $\nabla_W f(Z,W)$ has dimensions k x d. 
+\ans{\newline\newline
+For $\nabla_W f(Z,W)$:\newline\newline
+We expect $\nabla_W f(Z,W)$ to have dimensions of $W$, which is k x d, because we are finding the partial derivative of $f(Z,W)$ with respect to each element within $W$. $Z^T$ has dimensions k x n, $R$ has dimensions n x d, which makes $R \oslash \left(R^{\circ 2} + \epsilon\right)^{\circ \frac12}$ also have dimension n x d. So $\nabla_W f(Z,W)$ has dimensions k x d. 
 \newline 
 \newline
-For $\nabla_Z f(Z,W)$: $R$ has dimensions n x d, which makes $R \oslash \left(R^{\circ 2} + \epsilon\right)^{\circ \frac12}$ also have dimension n x d,
-$W^T$ has dimensions d x k. So $\nabla_W f(Z,W)$ has dimensions n x k. 
+For $\nabla_Z f(Z,W)$: \newline
+\newline
+We expect $\nabla_Z f(Z,W)$ to have dimensions of $Z$, which is n x k, because we are finding the partial derivative of $f(Z,W)$ with respect to each element within $Z$.$R$ has dimensions n x d, which makes $R \oslash \left(R^{\circ 2} + \epsilon\right)^{\circ \frac12}$ also have dimension n x d,
+$W^T$ has dimensions d x k. So $\nabla_Zþ f(Z,W)$ has dimensions n x k. 
 }
 \newpage
 \subsection{Robust PCA Implementation \pts{10}}
@@ -208,10 +211,10 @@ class RobustPCAFactorsLoss(FunObj):
     \ans{Yes, robust PCA produces a more clear picture of the highway compared to conventional PCA. }
 	
     \item How does the number of video frames and the size of each frame relate to $n$, $d$, and/or $k$?
-    \ans{$n$ is the number of frames in the video. $d$ is the number of pixels in each picture. $k$ is the number of principle compoents which is defined by the programmer.}
+    \ans{$n$ is the number of frames in the video. $d$ is the number of pixels in each picture. $k$ is the number of principle components which is defined by the programmer.}
 	
     \item What would the effect be of changing the threshold (see code) in terms of false positives (cars we identify that aren't really there) and false negatives (real cars that we fail to identify)?
-    \ans{A higher threshold will have higher false negatives, and a lower threshold will have more false positives (and noise).}
+    \ans{A higher threshold means we are less sensitive to outliers (cars), and will have higher false negatives, and a lower threshold will have more false positives (and noise).}
 \end{enumerate}
 
 \newpage
@@ -234,11 +237,11 @@ If you run \texttt{python main.py 2}, the program will perform the following ste
 
 \begin{enumerate}
 \item In lecture, we used the ``?'' symbol to represent missing ratings. How are these missing entries of $Y$ implemented in the code?
-\ans{the value "nan" is used to represent missing ratings.}
+\ans{The value "NaN" is used to represent missing ratings.}
 \item How many (non-missing) ratings are there in \texttt{Y\_train} and \texttt{Y\_valid}, respectively?
 \ans{\newline Number of non missing ratings are there for Y\_train = 80668 \newline Number of non missing ratings ratings are there for Y\_train = 20168}
 \item Does the same user-movie rating ever appear in \emph{both} \texttt{Y\_train} and \texttt{Y\_valid}? Is the result as expected?
-\ans{ The same user-movie rating should not appear as training and validation data sets should not contain the same examples, following the golden rule of machine learning. It is possible to different user-movie ratings for the same movie could be identical however.}
+\ans{ The same user-movie rating should not appear as training and validation data sets should not contain the same examples, following the golden rule of machine learning. However, it is possible that two users, one in training and one in validation, have the same rating for the same movie. This is expected, and are not considered "identical" in the case of violating the golden rule, since they have different IDs.}
 \end{enumerate}
 \newpage
 
@@ -291,16 +294,18 @@ As you'll see from the output, this baseline has a root mean squared error (RMSE
 
 PS: there is nothing to stop you from just guessing random hyperparameters, but it would be cool if you think about the fact that the current model overfits and adjust each of the hyperparameters in the direction that reduces the complexity of the model to combat the overfitting.
 \begin{answer}
-after 4 hours of performing grid search, these are the best hyper parameters we could find:
+After 4 hours of performing grid search, $ 5 <= k <= 50$ and $ 0 <= lambda <= 10 $ for both lammys, these are the best hyper parameters we could find:
 
-$k = 180$
+$k = 6$
 
 $\lambda_W = 9$
 
-$\lambda_Z = 9$
+$\lambda_Z = 8$
 
-The parameters gave an validation RMSE of 0.90
-    
+The parameters gave a training RMSE of 0.66 and a validation RMSE of 0.92.
+
+Note: We obtain good results too at the neighbourhood of k=180, but felt that is too high of number of principal components.
+
 \end{answer}
 \newpage
 
@@ -308,7 +313,7 @@ The parameters gave an validation RMSE of 0.90
 
 In lecture we discussed the fact that with regularized PCA, we need to regularize both $W$ and $Z$ for things to make sense. Test this out empirically by setting $\lambda_Z=0$ and $\lambda_W>0$. Modify the code so that it prints out the Frobenius norm of $W$ and $Z$ after each iteration of the alternating minimization (you don't have to submit this printing code though). \ask{Describe your observations and briefly discuss.}
 \begin{answer}
-    When  $\lambda_Z=0$ and $\lambda_W>0$, the Frobenius norm $W$ matrix will be decrease with each iteration while the Frobenius norm of $Z$ will remain constant. Alternatively, if $\lambda_Z>0$ and $\lambda_W=0$ then the Frobenius norm of $Z$ matrix will decrease with each iteration while the Frobenius norm of $W$ will remain constant. $\lambda_Z$ and $\lambda_W$, controls the regularization of matrix $Z$ and $W$. If they are set to zero, the matrices are not penalized for their magnitude which would result in the Frobenius norm of the matrix staying constant.
+    When  $\lambda_Z=0$ and $\lambda_W>0$, the Frobenius norm $W$ matrix decreases with each iteration while the Frobenius norm of $Z$ will remain constant. Alternatively, if $\lambda_Z>0$ and $\lambda_W=0$ then the Frobenius norm of $Z$ matrix will decrease with each iteration while the Frobenius norm of $W$ will remain constant. $\lambda_Z$ and $\lambda_W$, controls the regularization of matrix $Z$ and $W$. If they are set to zero, the matrices are not penalized for their magnitude which would result in the Frobenius norm of the matrix staying constant.
 \end{answer}
 
 \newpage
@@ -327,6 +332,7 @@ Assuming that we are doing regression, \ask{for a training example with features
     \[
         z_i = Wx_i = \mat{-2 & -1 & 3\\1 & 0 & -2} \mat{4 \\ -2 \\ 2} = \mat{0 \\ 0}
     \]
+    Since the sigmoid of 0 is 0.5, 
     \[
         h(z_i) = h \left( \mat{0 \\ 0} \right) = \mat{0.5 \\ 0.5}
     \]
@@ -394,15 +400,15 @@ Previously we changed the \emph{hidden layer size} from 2 to 4. Another change w
 
 \begin{enumerate}
 	\item Why are the axes ($z_1$ and $z_2$) of the learned feature space scatterplot constrained to $[0, 1]$? Note/hint: here, our definition of $z$ is after the nonlinearity is applied, whereas in the lecture $z$ is defined as before the nonlinearity is applied. Sorry about that!
-    \ans{The sigmoid function used for applying the nonlinearity constraints the values of $z_1$ and $z_2$ to [0,1].}
+    \ans{The activation function was a sigmoid function for applying the nonlinearity constraints the values of $z_1$ and $z_2$ to [0,1].}
 	\item Does it make sense to use neural networks on datasets whose examples are linearly separable in the original feature space?
-    \ans{No, a linear classifier would be less complex and more efficient solution to use here.}
+    \ans{No, a linear classifier would be less complex and more efficient solution to use when examples are already linearly separable. However, neural networks can capture linear patterns in the data as well, and would result in suitable solutions as well, albeit with likely more complexity and time.}
 	\item Why would increasing the dimensionality of the hidden features (which is a hyper-parameter) help improve the performance of our classifier?
-    \ans{Increasing the dimensionality of the hidden features is similar to performing a transform that increases the number of feature dimensions in the data. The neural network can learn from these new features allowing the data to be separable.}
+    \ans{Increasing the dimensionality of the hidden features is similar to performing a transform that increases the number of feature dimensions in the data. Learning new features based on the relationships and patterns of original features help the model capture the data's complexity and learn the decision boundaries, and thus allowing the data to be separable.}
 	\item Why would increasing the number of layers help improve the performance of our classifier?
-    \ans{Increasing the number of layers in a neural networks enables the network to learn to see higher order features that are seen from preceding layers.}
+    \ans{Increasing the number of layers in a neural networks enables the model to learn a hierarchy of features to model more complex, higher-order features from preceding layers.}
 	\item Neural networks are known to suffer problems due to a highly non-convex objective function. What is one way we can address this problem and increase the chances of discovering a global optimum? (Hint: look at the code.)
-    \ans{Initializing the model from random starting points helps and keeping track of the model that yields the best validation error. This is done in the code using "warm-start".}
+    \ans{Initializing the model from random starting points helps in keeping track of the model that yields the best validation error. It iterates over different random seeds, training the data, and discovering parameters that work best. This is done in the code using "warm-start".}
 \end{enumerate}
 \newpage
 
@@ -413,11 +419,11 @@ Previously we changed the \emph{hidden layer size} from 2 to 4. Another change w
 
 \item Give one reason why you might want sparse solutions with a latent-factor model.
 
-\ans{Spare solution reduces computational resources needed for training the latent factor model and also simplifies the model making it easier to interpret.}
+\ans{Spare solution reduces memory storage required for the model and computational resources for training and testing.}
 
 \item Which is better for recommending movies to a new user, collaborative filtering or content-based filtering? Briefly justify your answer.
 
-\ans{Content-based filtering is better as it does not require previous data from the user to make recommendations.}
+\ans{Content-based filtering is better as it does not require previous data from the user to make recommendations (which is unavailable for a new user). It relies on movie ratings instead of previous users' preferences.}
 
 \item{Are neural networks mainly used for supervised or unsupervised learning? Are they parametric or nonparametric?}
 
@@ -425,7 +431,7 @@ Previously we changed the \emph{hidden layer size} from 2 to 4. Another change w
 
 \item{Why might regularization become more important as we add layers to a neural network?}
 
-\ans{As layers are added, a neural network can learn more complex patterns which could lead to over fitting. Regularization helps prevent over fitting training data with the neural network. }
+\ans{As layers are added, a neural network can learn even more complex patterns which could lead to over-fitting. Regularization helps prevent over fitting training data with the neural network by penalizing complexity.}
 
 \item{Consider using a fully-connected neural network for 5-class classification on a problem with $d=20$. If the network has one hidden layer of size $k=100$, how many parameters (including biases), does the network have?}
 
@@ -433,11 +439,11 @@ Previously we changed the \emph{hidden layer size} from 2 to 4. Another change w
 
 \item What is the ``vanishing gradient'' problem with neural networks based on sigmoid non-linearities?
 
-\ans{ Gradients of the activation function are near zero, resulting in neural network weights not updating during back propagation. }
+\ans{Gradients of the sigmoid function are near zero the further away it is from the origin, resulting in neural network weights not updating during back propagation. }
 
 \item{Convolutional networks seem like a pain... why not just use regular (``fully connected'') neural networks for image classification?}
 
-\ans{CNNs provide spatial awareness to each pixel in the image when convolution is performed. Further more CNNs reduce the dimensions of the input and in turn reduce the number of parameters.}
+\ans{CNNs provide spatial awareness to each pixel in the image when convolution is performed. Furthermore CNNs reduce the dimensions of the input and in turn reduce the number of parameters.}
 
 \end{enumerate}
 \end{document}
